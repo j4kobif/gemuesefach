@@ -210,6 +210,29 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Nährwerte */
+.nutbox{display:grid;gap:5px}
+.nut{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;text-align:center;font-size:12px;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:7px 4px}
+.nut b{display:block;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:700}
+.macro{display:flex;height:6px;border-radius:4px;overflow:hidden;background:var(--surface-2)}
+.mp{background:var(--green)}.mc{background:var(--squash)}.mf{background:var(--beet)}
+.nut-cap{font-size:11.5px;color:var(--ink-2);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.lg{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:3px}
+.tag-pro{font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:6px;border:1px solid var(--green);color:var(--green)}
+.tablewrap{overflow-x:auto;max-width:100%}
+.ntable{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums;margin-bottom:8px}
+.ntable th,.ntable td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:baseline}
+.ntable th{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
+.ntable .num{text-align:right;white-space:nowrap}
+.ntable tfoot td{font-weight:700;border-bottom:0}
+.ntable.big{font-size:14px;margin:0}
+.ntable.big th,.ntable.big td{padding:8px 12px}
+.ntable.big tbody tr:hover{background:var(--surface-2)}
+.ntable.big .nm{font-weight:600}
+.sortbtn{border:0;background:none;padding:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit}
+.search{border:1.5px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 12px;max-width:420px;width:100%}
+.search:focus{border-color:var(--green);outline:none}
+
 footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-size:13.5px;color:var(--ink-2);display:grid;gap:4px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:14px;font-weight:600;z-index:30;max-width:calc(100% - 32px)}
 </style>
@@ -248,6 +271,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
     <button role="tab" id="tab-kochen" aria-controls="p-kochen" aria-selected="true">Kochen</button>
     <button role="tab" id="tab-snacks" aria-controls="p-snacks" aria-selected="false">Snacks</button>
     <button role="tab" id="tab-einkauf" aria-controls="p-einkauf" aria-selected="false">Einkauf</button>
+    <button role="tab" id="tab-naehrwerte" aria-controls="p-naehrwerte" aria-selected="false">Nährwerte</button>
     <button role="tab" id="tab-kueche" aria-controls="p-kueche" aria-selected="false">Meine Küche</button>
   </nav>
 
@@ -386,6 +410,22 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
           <textarea class="fallback" id="listFallback" hidden aria-label="Einkaufsliste zum Kopieren"></textarea>
         </div>
       </aside>
+    </div>
+  </section>
+
+  <!-- NÄHRWERTE -->
+  <section id="p-naehrwerte" role="tabpanel" aria-labelledby="tab-naehrwerte" hidden>
+    <div style="display:grid;gap:16px">
+      <div style="display:grid;gap:6px;max-width:68ch">
+        <h2 style="font-size:24px">Nährwerte der Zutaten</h2>
+        <p class="muted">Durchschnittswerte pro 100 g, Energie in kcal, alles andere in Gramm. Im veganen Modus siehst du die Werte der pflanzlichen Alternativen. Tippe auf eine Spaltenüberschrift, um zu sortieren.</p>
+      </div>
+      <div style="display:grid;gap:10px">
+        <input id="nwSearch" class="search" placeholder="Zutat suchen, z. B. Linsen" aria-label="Zutat suchen">
+        <div class="quick" id="nwCats"></div>
+      </div>
+      <div class="tablewrap panel" style="padding:0"><table class="ntable big" id="nwTable"></table></div>
+      <p class="small muted">kcal nach EU-Umrechnungsfaktoren berechnet (4 je g Eiweiß und Kohlenhydrate, 9 je g Fett, 2 je g Ballaststoffe). Kohlenhydrate ohne Ballaststoffe, wie auf EU-Verpackungen. Einzelne Produkte können abweichen.</p>
     </div>
   </section>
 
@@ -583,7 +623,7 @@ const RECIPES=[
 {id:'curry',n:'Kichererbsen-Gemüse-Curry',d:'Cremig mit Kokosmilch und voller Gemüse, alles in einer Pfanne.',
  core:['kichererbsen','kokosmilch','zwiebel','currypaste|curry'],opt:['spinat','paprika','brokkoli','karotte','suesskartoffel','tomate','reis','knoblauch','ingwer'],
  m:[['herd',30]],
- s:['1 Zwiebel (nach Wunsch mit Knoblauch und Ingwer) würfeln und in 1 EL Öl glasig dünsten.','1–2 EL Currypaste oder 2 TL Currypulver kurz mitrösten.','Gemüse klein schneiden, mit 1 Dose abgetropften Kichererbsen und 400 ml Kokosmilch zugeben und 15 Min. köcheln.','Spinat zum Schluss unterheben, salzen. Dazu Vollkornreis.'],
+ s:['1 Zwiebel (nach Wunsch mit Knoblauch und Ingwer) würfeln und in 1 EL Öl glasig dünsten.','1–2 EL Currypaste oder 2 TL Currypulver kurz mitrösten.','Gemüse klein schneiden, mit 1 Dose abgetropften Kichererbsen, 200 ml Kokosmilch und 200 ml Wasser zugeben und 15 Min. köcheln.','Spinat zum Schluss unterheben, salzen. Dazu Vollkornreis.'],
  p:[['Limettensaft','frische Säure gegen die Kokos-Schwere','limette'],['Frischer Koriander','aromatisches Topping','koriander'],['Geröstete Cashews','Crunch und Eiweiß','cashews'],['Chili','etwas Schärfe','chili']]},
 {id:'dal',n:'Rote-Linsen-Dal',d:'Würzig und sättigend, in 25 Minuten fertig.',
  core:['rote_linsen','zwiebel','dosentomaten|tomate','curry|kreuzkuemmel|kurkuma'],opt:['knoblauch','ingwer','kokosmilch','spinat','karotte','reis','brot'],
@@ -935,7 +975,7 @@ const SNACKS=[
  tip:'Im Glas im Kühlschrank ca. 1 Woche haltbar.'},
 {id:'gemuesechips',n:'Gemüsechips',rep:'Kartoffelchips',why:'Wenig Öl, keine Frittierfette, bunte Gemüsesorten.',
  m:[['airfryer',15,'Bei 160 °C 12–15 Min., alle 4 Min. schütteln.'],['ofen',35,'Bei 130 °C Umluft 25–35 Min., Ofentür mit einem Kochlöffel einen Spalt offen halten.']],
- ing:[['2','Rote Bete, Süßkartoffel oder Karotten','rote_bete'],['1 EL','Öl'],['1 TL','Paprikapulver','paprikapulver'],['','Salz']],
+ ing:[['2','Rote Bete, Süßkartoffel oder Karotten','rote_bete'],['1 EL','Öl','oel'],['1 TL','Paprikapulver','paprikapulver'],['','Salz']],
  s:['Gemüse hauchdünn hobeln und gut trocken tupfen.','Mit Öl und Paprikapulver mischen und einlagig verteilen.','Backen, bis die Ränder knusprig sind, erst danach salzen.'],
  tip:'Auf einem Gitter auskühlen lassen, dann werden sie richtig knusprig.'},
 {id:'energyballs',n:'Energy Balls',rep:'Schokoriegel',why:'Ballaststoffe aus Hafer, Eiweiß aus Nüssen, Süße nur aus Datteln.',
@@ -950,12 +990,12 @@ const SNACKS=[
  tip:'Für Schoko-Nicecream 1 EL Kakao mitmixen.'},
 {id:'roestkichererbsen',n:'Geröstete Kichererbsen',rep:'Erdnussflips',why:'Knusprig mit viel Eiweiß und Ballaststoffen.',
  m:[['airfryer',15,'Bei 200 °C ca. 12 Min., zweimal schütteln.'],['ofen',35,'Bei 200 °C ca. 30 Min.']],
- ing:[['1 Dose','Kichererbsen','kichererbsen'],['1 EL','Öl'],['1 TL','Paprikapulver','paprikapulver'],['½ TL','Kreuzkümmel','kreuzkuemmel'],['','Salz']],
+ ing:[['1 Dose','Kichererbsen','kichererbsen'],['1 EL','Öl','oel'],['1 TL','Paprikapulver','paprikapulver'],['½ TL','Kreuzkümmel','kreuzkuemmel'],['','Salz']],
  s:['Kichererbsen abspülen und sehr gut trocken tupfen.','Mit Öl und Gewürzen mischen.','Rösten, bis sie außen knusprig sind.'],
  tip:'Am selben Tag essen, danach werden sie weich.'},
 {id:'popcorn',n:'Popcorn aus dem Topf',rep:'Kino-Popcorn mit Zucker',why:'Vollkorn-Snack, gewürzt statt gezuckert.',
  m:[['herd',10]],
- ing:[['50 g','Popcornmais','popcorn'],['1 EL','Öl'],['','Salz, Zimt oder Hefeflocken','hefeflocken']],
+ ing:[['50 g','Popcornmais','popcorn'],['1 EL','Öl','oel'],['','Salz, Zimt oder Hefeflocken','hefeflocken']],
  s:['Öl und Mais in einen großen Topf geben, Deckel drauf, auf mittlerer Hitze erhitzen.','Sobald es poppt, den Topf leicht schütteln. Wenn es nur noch selten knallt, vom Herd nehmen.','Mit Salz und Hefeflocken (herzhaft) oder Zimt (süßlich) würzen.'],
  tip:'Hefeflocken schmecken käsig und passen perfekt.'},
 {id:'bark',n:'Frozen-Joghurt-Rinde',rep:'Eis am Stiel',why:'Eiweiß aus Joghurt, Süße aus Beeren.',
@@ -1014,6 +1054,148 @@ const SEASON={
  11:{g:['Grünkohl','Rosenkohl','Feldsalat','Lauch','Rotkohl','Weißkohl','Wirsing','Pastinaken','Rote Bete','Chicorée'],o:['Äpfel (Lager)','Birnen (Lager)']}
 };
 const ALWAYS=['Bananen','Zitronen','Zwiebeln','Knoblauch','TK-Beeren','TK-Spinat'];
+
+/* ============ NÄHRWERTE ============ */
+/* pro 100 g: [Eiweiß, Kohlenhydrate (ohne Ballaststoffe), davon Zucker, Fett, Ballaststoffe] – Durchschnittswerte.
+   kcal werden nach EU-Faktoren berechnet: 4 je g Eiweiß/KH, 9 je g Fett, 2 je g Ballaststoffe. */
+const NUT={
+tomate:[1.0,2.6,2.5,0.2,1.2],paprika:[1.0,4.6,4.0,0.3,1.9],zucchini:[1.2,2.1,2.0,0.3,1.0],aubergine:[1.0,2.9,2.5,0.2,3.0],
+brokkoli:[2.8,3.0,1.7,0.4,3.0],blumenkohl:[1.9,2.9,1.9,0.3,2.0],karotte:[0.9,6.8,4.7,0.2,2.8],zwiebel:[1.1,7.0,4.2,0.1,1.7],
+knoblauch:[6.4,29,1.0,0.5,2.1],spinat:[2.9,0.6,0.4,0.4,2.2],kartoffel:[2.0,15,0.8,0.1,2.2],suesskartoffel:[1.6,17,4.2,0.1,3.0],
+kuerbis:[1.1,7.0,4.0,0.2,2.0],pilze:[3.1,0.5,0.5,0.3,1.0],lauch:[1.6,4.0,3.0,0.3,2.3],gurke:[0.7,2.1,1.7,0.1,0.5],
+salat:[1.3,1.5,0.8,0.2,1.3],rucola:[2.6,2.0,2.0,0.7,1.6],weisskohl:[1.4,4.2,3.2,0.2,2.5],rotkohl:[1.5,5.0,3.8,0.2,2.3],
+rote_bete:[1.5,7.8,6.8,0.1,2.5],mais:[2.9,15,4.0,1.2,2.4],erbsen:[5.4,9.0,5.0,0.4,5.1],avocado:[2.0,1.9,0.7,14.7,6.7],
+fruehlingszwiebel:[1.8,4.6,2.3,0.2,2.6],ingwer:[1.8,15,1.7,0.8,2.0],chili:[1.9,6.0,5.3,0.4,1.5],sellerie:[0.7,1.4,1.3,0.2,1.6],
+fenchel:[1.2,3.0,3.0,0.3,3.1],gruenkohl:[4.3,2.5,1.8,0.9,4.2],rosenkohl:[3.4,3.3,2.2,0.3,4.4],pastinake:[1.3,12,4.8,0.4,4.9],
+radieschen:[1.0,2.1,1.9,0.1,1.6],
+banane:[1.1,20,17,0.3,2.0],apfel:[0.3,12,10,0.2,2.0],birne:[0.4,12,10,0.1,3.1],beeren:[1.0,8.0,6.5,0.4,4.0],
+zitrone:[0.7,3.2,2.5,0.6,1.0],limette:[0.6,2.5,1.7,0.2,1.0],orange:[1.0,9.2,9.0,0.2,2.2],mango:[0.6,13,13,0.4,1.7],
+datteln:[2.5,65,63,0.4,8.0],
+kichererbsen:[7.0,13.5,0.5,2.6,6.0],rote_linsen:[25,49,2,1.5,11],linsen:[24,41,2,1.5,17],kidneybohnen:[7.2,11,0.5,0.6,6.5],
+schwarze_bohnen:[7.0,11,0.5,0.5,7.0],weisse_bohnen:[7.0,11,0.5,0.5,6.5],edamame:[11,3.6,2.2,5.2,5.2],
+tofu:[13,1.0,0.5,7.0,1.0],raeuchertofu:[16,1.5,0.5,9.0,1.5],tempeh:[20,3,0.5,11,5],vegan_chicken:[22,4,1,6,4],
+vegan_hack:[18,5,1,12,4],eier:[12.5,0.7,0.7,9.5,0],
+reis:[7.5,72,0.7,2.5,3],nudeln:[13,64,3,2.5,8],reisnudeln:[6,80,0.5,0.6,1.5],couscous:[12.8,72,0.5,0.6,5],
+bulgur:[12,68,0.4,1.5,8],quinoa:[14,58,3,6,7],haferflocken:[13.5,58.7,0.7,7.0,10],brot:[7.5,38,3,2,7.5],
+tortilla:[9,46,2.5,7,6],mehl:[12,60,0.5,2,10],kichererbsenmehl:[22,49,2,6,11],gnocchi:[3.5,33,1,0.4,2],
+lasagne:[12.5,70,3,1.5,3],hirse:[11,69,1,4,4],polenta:[8,75,1,1.5,3],
+feta:[17,0.5,0.5,21.5,0],mozzarella:[18,1,1,19,0],parmesan:[33,0,0,29,0],kaese:[24,0,0,29,0],joghurt:[4,4.5,4.5,3.5,0],
+quark:[12,4,4,0.3,0],milch:[3.4,4.8,4.8,1.5,0],sahne:[2.4,3.2,3.2,30,0],butter:[0.7,0.6,0.6,82,0],halloumi:[22,1.5,1.5,25,0],
+dosentomaten:[1.1,3.5,3.2,0.2,1.2],tomatenmark:[4.5,14,12,0.5,4],kokosmilch:[1.8,2.8,2.2,19,0.5],bruehe:[0.2,0.5,0.3,0.2,0],
+sojasauce:[8,6,1,0.1,0.8],erdnussmus:[25,12,6,50,8],tahini:[17,10,0.5,54,9],currypaste:[2,10,5,5,4],senf:[6,5,3,4.5,3],
+essig:[0.2,1,0.5,0,0],oliven:[1.0,0.5,0,15,3.3],nuesse:[18,7,3.5,58,9],haselnuesse:[14,8,4,61,8],cashews:[18,30,6,44,3],
+kerne:[25,8,1.5,50,7],chiasamen:[17,8,0,31,34],leinsamen:[24,1.6,1.5,37,27],kakao:[20,11,0.5,20,32],hefeflocken:[50,12,1,5,20],
+honig:[0.4,76,76,0,0],ahornsirup:[0,67,60,0,0],backpulver:[0,25,0,0,0],popcorn:[12,62,0.5,4.5,13],zartbitter:[12,19,14,46,12],
+pesto:[5,4,2,49,2],miso:[12,22,6,6,5],
+curry:[14,25,3,14,33],kreuzkuemmel:[18,34,2,22,11],paprikapulver:[14,19,10,13,35],zimt:[4,27,2,1.2,53],oregano:[9,26,4,4,42],
+kurkuma:[10,44,3,3,21],
+basilikum:[3.2,1,0.3,0.6,1.6],petersilie:[3,1.5,0.9,0.8,3.3],koriander:[2.1,0.9,0.9,0.5,2.8],schnittlauch:[3.3,1.9,1.9,0.7,2.5],
+minze:[3.8,6.9,0,0.9,8],
+oel:[0,0,0,100,0]
+};
+/* Werte der veganen Alternativen (Haferdrink, Sojajoghurt, Pflanzenkäse …) */
+const NUTV={feta:[0.5,20,0,22,0],mozzarella:[1,20,0,21,0],parmesan:[50,12,1,5,20],kaese:[0.5,21,0,23,0],joghurt:[4,1.5,0.5,2.3,1],
+quark:[10,3,2,2,1],milch:[0.5,6.7,4,1.5,0.8],sahne:[0.5,6,1,13.5,0.5],butter:[0,0.5,0.5,80,0],honig:[0,67,60,0,0],
+halloumi:[16,1.5,0.5,9,1.5],pesto:[3,5,2,46,2]};
+const NOTE={kichererbsen:'Dose, abgetropft',kidneybohnen:'Dose, abgetropft',schwarze_bohnen:'Dose, abgetropft',weisse_bohnen:'Dose, abgetropft',
+mais:'Dose, abgetropft',rote_linsen:'trocken',linsen:'trocken',reis:'trocken',nudeln:'trocken',reisnudeln:'trocken',couscous:'trocken',
+bulgur:'trocken',quinoa:'trocken',hirse:'trocken',polenta:'trocken',lasagne:'trocken',haferflocken:'trocken',bruehe:'zubereitet',
+kokosmilch:'Dose, vollfett',milch:'1,5 % Fett',joghurt:'3,5 % Fett',quark:'Magerstufe',kaese:'Gouda 45 %',sahne:'30 % Fett',
+erbsen:'TK',edamame:'TK, geschält',beeren:'Mix',nuesse:'Walnuss/Mandel',kerne:'Kürbis/Sonnenblume',brot:'Vollkorn',
+tortilla:'Vollkorn',mehl:'Vollkorn',kakao:'stark entölt',zartbitter:'85 %',tomatenmark:'zweifach konzentriert'};
+/* Referenzmengen für Erwachsene (EU-Lebensmittelinformationsverordnung); Ballaststoffe: DGE-Richtwert */
+const RI={kcal:2000,p:50,c:260,z:90,f:70,b:30};
+
+/* Mengen in g (2 Portionen, falls nicht anders in POR): [Kern-Gruppen in Reihenfolge], {feste Extras} */
+const QTY={
+curry:[[240,200,80,30],{spinat:100,paprika:150,reis:150,oel:10}],
+dal:[[150,80,400,6],{knoblauch:6,ingwer:10,reis:120,oel:10}],
+ofengemuese:[[500,400,100,150],{oel:20}],
+shakshuka:[[240,400,250,80],{knoblauch:6,brot:100,oel:10}],
+bolognese:[[200,100,400,80],{karotte:100,tomatenmark:20,oel:10}],
+chili:[[250,400,80,200],{reis:120,oel:10}],
+bowl:[[200,150,300,20],{erdnussmus:15,oel:10}],
+chickenpfanne:[[200,400,30,150],{oel:15}],
+taboule:[[100,250,200,40,50],{fruehlingszwiebel:30,oel:30}],
+oats:[[50,150,100],{chiasamen:5}],
+porridge:[[50,250,120],{nuesse:10}],
+smoothie:[[120,30,80,250],{}],
+wraps:[[240,240,200,30],{tahini:15}],
+tomatensuppe:[[800,80,300],{karotte:80,knoblauch:6,oel:10}],
+kuerbissuppe:[[500,80,600],{ingwer:10,kokosmilch:50,oel:10}],
+minestrone:[[100,150,250,400,800],{zwiebel:80,nudeln:50,oel:10}],
+frittata:[[240,300],{zwiebel:50,kaese:30,oel:10}],
+tofuruehrei:[[200,150],{zwiebel:50,brot:120,oel:10}],
+pilzpasta:[[200,250,150,6],{sahne:100,oel:15}],
+paprikagefuellt:[[600,100,400,80],{kaese:60,oel:10}],
+suesskartoffel:[[600,250],{avocado:100,limette:20}],
+friedrice:[[100,250,120,30],{fruehlingszwiebel:30,oel:15}],
+erdnussnudeln:[[200,30,30,250],{limette:20}],
+griechisch:[[250,300,150],{paprika:150,zwiebel:50,oliven:40,kichererbsen:240,oel:20}],
+bruschetta:[[200,300],{basilikum:5,oel:15}],
+avotoast:[[160,200],{zitrone:10,tomate:100}],
+blumenkohl:[[600,240,30,40],{oel:20}],
+pellkartoffeln:[[600,250,15],{milch:30,gurke:150,oel:10}],
+linsensalat:[[120,200,200,5],{zwiebel:40,oel:30}],
+quesadillas:[[240,250,80],{mais:70,paprika:100}],
+waffeln:[[250,100,120],{milch:100,kaese:30,backpulver:2,oel:5}],
+pancakes:[[120,80,150],{backpulver:2,oel:5}],
+rotkohlsalat:[[250,150,40],{senf:5,oel:20}],
+krautpfanne:[[500,200,80],{paprikapulver:3,oel:15}],
+joghurtbowl:[[200,150,20],{leinsamen:5}],
+bircher:[[50,150,100],{milch:100,nuesse:10,zitrone:10}],
+ruehrei:[[180,150,120],{oel:5}],
+bakedoats:[[60,120,120,80],{backpulver:2}],
+burrito:[[120,150,120,150],{zwiebel:40,kaese:30,oel:10}],
+quarkbrot:[[200,250,200],{schnittlauch:10}],
+hirsebrei:[[60,250,150],{}],
+herzhaftoats:[[50,250,150],{oel:5}],
+gnocchi:[[400,150,250,6],{oel:15}],
+lasagne:[[250,100,800,500,120],{zwiebel:80,oel:15}],
+halloumi:[[200,100,300,40],{oel:15}],
+thaisuppe:[[400,200,300,20,400],{reisnudeln:80}],
+misosuppe:[[40,100,150,200],{}],
+fenchelsalat:[[300,300,30],{oel:20}],
+gruenkohlsalat:[[200,150,40,30],{senf:5,oel:15}],
+rosenkohl:[[500,240,80],{senf:10,oel:20}],
+wurzelgemuese:[[600,120,50],{essig:15,oel:30}],
+auflauf:[[600,300,300,80],{mehl:10}],
+polenta:[[120,300,80,600],{parmesan:20,oel:15}],
+mujadara:[[100,100,300,3],{oel:30}],
+bibimbap:[[150,400,120,20],{oel:15}],
+falafel:[[240,30,60,300],{mehl:20,tahini:20,oel:15}],
+aloopalak:[[400,300,80,6],{dosentomaten:200,oel:15}],
+ratatouille:[[300,250,400,100],{zucchini:250,oel:25}],
+erbsenpasta:[[200,150,200,40],{oel:15}],
+pestopasta:[[200,300,50],{}],
+ingwertofu:[[200,300,45,150],{ingwer:10,oel:15}],
+marokkocouscous:[[100,240,400,80],{dosentomaten:400,oel:15}],
+bohnenburger:[[250,50,240,150],{zwiebel:50,senf:10,oel:15}],
+gyros:[[250,240,150,150],{tomate:100,zwiebel:40,oel:15}],
+karottensuppe:[[500,50,80,700],{ingwer:10,oel:10}],
+brokkolisuppe:[[500,200,80,700],{oel:10}],
+linseneintopf:[[150,300,200,80,1000],{tomatenmark:15,essig:15,oel:10}],
+puffer:[[500,60,60],{joghurt:150,oel:20}]
+};
+const POR={oats:1,porridge:1,smoothie:1,pancakes:1,joghurtbowl:1,bircher:1,bakedoats:1,hirsebrei:1,herzhaftoats:1,lasagne:4};
+/* vegane Ersatzmengen, wenn eine Zutat getauscht wird */
+const SQ={shakshuka:{tofu:200},frittata:{kichererbsenmehl:100},waffeln:{leinsamen:14},ruehrei:{tofu:200},puffer:{leinsamen:7}};
+/* Snacks: [Gramm je Zutatenzeile], Portionen, Portionsangabe */
+const SQTY={
+schokocreme:[[150,80,15,125,0],18,'1 EL (ca. 20 g)'],
+gemuesechips:[[300,10,2,0],2],
+energyballs:[[100,80,50,6,15],12,'1 Kugel'],
+nicecream:[[240,100,30],2],
+roestkichererbsen:[[240,10,2,1,0],2],
+popcorn:[[50,10,5],2],
+bark:[[300,100,20,5],6,'1 Stück'],
+haferkekse:[[240,150,40,2],12,'1 Keks'],
+hummus:[[240,30,25,5,1,300],4],
+chiapudding:[[30,250,6,20],2],
+apfelchips:[[300,2],2],
+schokofruechte:[[50,250,10],3]
+};
+
 const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 /* ============ ZUSTAND ============ */
@@ -1057,6 +1239,46 @@ function lookup(raw){
  return null;
 }
 
+/* ============ NÄHRWERT-RECHNUNG ============ */
+const kcalOf=a=>4*a[0]+4*a[1]+9*a[3]+2*a[4];
+const nv=id=>(vegan()&&NUTV[id])||NUT[id]||null;
+const fmt=n=>{if(n==null||isNaN(n))return '–';const a=Math.abs(n);return a>0&&a<10?String(Math.round(n*10)/10).replace('.',','):String(Math.round(n));};
+function calcNut(items,por){
+ const tot={kcal:0,p:0,c:0,z:0,f:0,b:0};const rows=[];
+ for(const it of items){
+   if(!it.g)continue;const a=nv(it.id);if(!a)continue;const k=it.g/100;
+   const kc=kcalOf(a)*k;tot.kcal+=kc;tot.p+=a[0]*k;tot.c+=a[1]*k;tot.z+=a[2]*k;tot.f+=a[3]*k;tot.b+=a[4]*k;
+   rows.push({label:it.label,m:Math.round(it.g)+' g',kcal:kc});
+ }
+ const per={};for(const k in tot)per[k]=tot[k]/por;
+ return {per,rows,por,total:tot.kcal};
+}
+function nutStrip(n,cap){
+ const p=n.per;const eP=p.p*4,eC=p.c*4,eF=p.f*9,s=(eP+eC+eF)||1;const w=x=>(x/s*100).toFixed(1);const pc=x=>Math.round(x/s*100);
+ return `<div class="nutbox"><div class="nut"><span><b>${fmt(p.kcal)}</b>kcal</span><span><b>${fmt(p.p)} g</b>Eiweiß</span><span><b>${fmt(p.c)} g</b>Kohlenh.</span><span><b>${fmt(p.f)} g</b>Fett</span></div>
+  <div class="macro" role="img" aria-label="Energieanteile: ${pc(eP)} % Eiweiß, ${pc(eC)} % Kohlenhydrate, ${pc(eF)} % Fett"><span class="mp" style="width:${w(eP)}%"></span><span class="mc" style="width:${w(eC)}%"></span><span class="mf" style="width:${w(eF)}%"></span></div>
+  <p class="nut-cap"><span>${esc(cap||'pro Portion')}</span><span><i class="lg mp"></i>Eiweiß ${pc(eP)} %</span><span><i class="lg mc"></i>KH ${pc(eC)} %</span><span><i class="lg mf"></i>Fett ${pc(eF)} %</span></p></div>`;
+}
+function nutDetails(n){
+ const p=n.per;
+ const line=(name,val,unit,ri)=>`<tr><td>${name}</td><td class="num">${fmt(val)} ${unit}</td><td class="num">${ri?Math.round(val/ri*100)+' %':''}</td></tr>`;
+ const rowsH=n.rows.map(r=>`<tr><td>${esc(r.label)}</td><td class="num">${esc(r.m)}</td><td class="num">${r.kcal==null?'–':fmt(r.kcal)}</td></tr>`).join('');
+ return `<details><summary>Nährwerte &amp; Mengen</summary>
+  <div class="tablewrap"><table class="ntable"><thead><tr><th>Pro Portion</th><th class="num">Menge</th><th class="num">% RM</th></tr></thead><tbody>
+  ${line('Energie',p.kcal,'kcal',RI.kcal)}${line('Eiweiß',p.p,'g',RI.p)}${line('Kohlenhydrate',p.c,'g',RI.c)}${line('davon Zucker',p.z,'g',RI.z)}${line('Fett',p.f,'g',RI.f)}${line('Ballaststoffe',p.b,'g',RI.b)}
+  </tbody></table></div>
+  ${n.rows.length?`<div class="tablewrap"><table class="ntable"><thead><tr><th>Zutat</th><th class="num">Menge</th><th class="num">kcal</th></tr></thead><tbody>${rowsH}</tbody>${n.total?`<tfoot><tr><td>Gesamt (${n.por} ${n.por===1?'Portion':'Portionen'})</td><td></td><td class="num">${fmt(n.total)}</td></tr></tfoot>`:''}</table></div>`:''}
+  <p class="small muted">${n.ai?'Von Claude geschätzt.':'Schätzwerte aus Durchschnittswerten der Zutaten, ohne Salz. Reis, Nudeln, Linsen und Getreide als Trockengewicht, Flüssigkeiten in ml ≈ g.'} % RM = Anteil an der Referenzmenge für Erwachsene (2000 kcal) laut EU-Lebensmittelinformationsverordnung, Ballaststoffe nach DGE-Richtwert (30 g).</p>
+ </details>`;
+}
+function aiNut(x,por){
+ const nw=x&&x.naehrwerte_pro_portion;if(!nw||typeof nw!=='object')return null;
+ const num=v=>Number(v)||0;
+ const per={kcal:num(nw.kcal),p:num(nw.eiweiss),c:num(nw.kohlenhydrate),z:num(nw.zucker),f:num(nw.fett),b:num(nw.ballaststoffe)};
+ const rows=(Array.isArray(x.zutaten)?x.zutaten:[]).filter(i=>i&&i.name).map(i=>({label:String(i.name),m:String(i.menge||''),kcal:i.kcal==null||isNaN(Number(i.kcal))?null:Number(i.kcal)}));
+ return {per,rows,por:por||2,total:0,ai:true};
+}
+
 /* ============ GERÄTE ============ */
 const needAlts=tok=>tok.split('|').flatMap(t=>GROUPS[t]||[t]);
 function pickMethod(methods,owned){
@@ -1093,13 +1315,21 @@ function haveSets(){
 function recipeView(r,owned,user,have){
  const method=pickMethod(r.m,owned);
  const chips=[];let missing=0,userHits=0;const used=new Set();
- for(const g of r.core){
+ const Q=QTY[r.id]||[[],{}];const sq=SQ[r.id]||{};const items=[];
+ r.core.forEach((g,i)=>{
    const alts=altsFor(g,r);
    const u=alts.find(a=>user.has(a)),h=u||alts.find(a=>have.has(a));
    if(u)userHits++;
    if(h){used.add(h);chips.push({label:dn(h),state:u?'have':'stock'});}
    else{missing++;chips.push({label:alts.slice(0,2).map(dn).join(' / '),state:'missing'});}
+   const c=h||alts[0];items.push({id:c,g:vegan()&&sq[c]!=null?sq[c]:Q[0][i],label:dn(c)});
+ });
+ for(let [id,g] of Object.entries(Q[1])){
+   let use=id;
+   if(vegan()&&!isVeg(id)){const sw=r.swaps&&r.swaps[id];if(sw){use=sw;if(sq[sw]!=null)g=sq[sw];}else if(id==='eier')continue;}
+   items.push({id:use,g,label:use==='oel'?'Öl':dn(use)});
  }
+ const por=POR[r.id]||2;const nut=calcNut(items,por);
  for(const o of r.opt){
    if(vegan()&&o==='eier'&&!(r.swaps&&r.swaps.eier))continue;
    const alts=altsFor(o,r);const h=alts.find(a=>have.has(a)&&!used.has(a));
@@ -1108,7 +1338,7 @@ function recipeView(r,owned,user,have){
  const vegCount=[...used].filter(id=>I[id]&&(I[id].c==='g'||I[id].c==='o')).length;
  const pimp=r.p.filter(p=>!(vegan()&&p[2]==='eier')).map(p=>({label:vz(p[0]),why:p[1],have:!!(p[2]&&have.has(p[2]))}));
  const steps=r.s.map(s=>Array.isArray(s)?(vegan()?s[1]:vz(s[0])):vz(s));
- return {r,name:vegan()&&r.vn?r.vn:r.n,desc:vegan()&&r.vd?r.vd:vz(r.d),method,time:method?method.time:null,devices:method?method.names:[],note:method?method.note:'',chips,missing,userHits,vegCount,pimp,steps,source:'db'};
+ return {r,name:vegan()&&r.vn?r.vn:r.n,desc:vegan()&&r.vd?r.vd:vz(r.d),method,time:method?method.time:null,devices:method?method.names:[],note:method?method.note:'',chips,missing,userHits,vegCount,pimp,steps,nut,por,source:'db'};
 }
 function matchRecipes(){
  const owned=new Set(S.devices);const {user,have}=haveSets();
@@ -1138,10 +1368,12 @@ function cardHTML(v){
  return `<article class="card">
   <div class="card-h"><h3>${esc(v.name)}</h3><span class="time">${clock}${esc(v.time)} Min.</span></div>
   <p class="desc">${esc(v.desc)}</p>
-  <div class="meta">${status}${ai}<span>${dev}</span>${veg}</div>
+  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}<span>${dev}</span>${veg}</div>
+  ${v.nut?nutStrip(v.nut):''}
   <ul class="ings">${chips}</ul>
   ${pimp}
-  <details><summary>Zubereitung · 2 Portionen</summary>${v.note?`<p class="note">${esc(v.note)}</p>`:''}<ol>${v.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></details>
+  <details><summary>Zubereitung · ${v.por||2} ${v.por===1?'Portion':'Portionen'}</summary>${v.note?`<p class="note">${esc(v.note)}</p>`:''}<ol>${v.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></details>
+  ${v.nut?nutDetails(v.nut):''}
  </article>`;
 }
 
@@ -1155,10 +1387,11 @@ function renderChips(){
 function renderQuick(){
  const ids=new Set(S.chips.map(c=>c.id));
  const q=QUICK.filter(id=>!(vegan()&&id==='eier'));
- $('#quick').innerHTML=q.map(id=>`<button type="button" data-id="${id}" aria-pressed="${ids.has(id)}">${esc(dn(id))}</button>`).join('');
+ const tip=id=>{const a=nv(id);return a?`${fmt(kcalOf(a))} kcal / 100 g`:'';};
+ $('#quick').innerHTML=q.map(id=>`<button type="button" data-id="${id}" aria-pressed="${ids.has(id)}" title="${tip(id)}">${esc(dn(id))}</button>`).join('');
  $('#browse').innerHTML=CATS.map(([c,label])=>{
    const items=Object.values(I).filter(x=>x.c===c&&!(vegan()&&(x.id==='eier'||VALT[x.id])));
-   return `<div class="cat"><span class="lbl">${esc(vegan()&&c==='m'?'Milch-Alternativen':label)}</span><div class="quick">${items.map(x=>`<button type="button" data-id="${x.id}" aria-pressed="${ids.has(x.id)}">${esc(dn(x.id))}</button>`).join('')}</div></div>`;
+   return `<div class="cat"><span class="lbl">${esc(vegan()&&c==='m'?'Milch-Alternativen':label)}</span><div class="quick">${items.map(x=>`<button type="button" data-id="${x.id}" aria-pressed="${ids.has(x.id)}" title="${tip(x.id)}">${esc(dn(x.id))}</button>`).join('')}</div></div>`;
  }).join('');
  $('#ingList').innerHTML=Object.values(I).map(x=>`<option value="${esc(dn(x.id))}">`).join('');
  const n=S.stock.filter(id=>!(vegan()&&id==='eier')).length;
@@ -1211,6 +1444,8 @@ function snackHTML(sn,ai){
  if(ai){method={time:sn.time,names:sn.devices,note:''};}
  else{method=pickMethod(sn.m,owned);if(!method)missDev=missingDevices(sn.m);}
  const time=method?method.time:sn.m[0][1];
+ let nut=sn.nut||null;
+ if(!ai&&SQTY[sn.id]){const [gs,por,pl]=SQTY[sn.id];nut=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:gs[i],label:id&&!isVeg(id)&&vegan()?dn(id):vz(name)})).filter(x=>x.id),por);nut.pl=pl;}
  const devs=method?(method.names.length?method.names.join(' · '):'Kein Gerät nötig'):'';
  const ing=sn.ing.map(([q,name,id])=>{
    const label=id&&!isVeg(id)&&vegan()?dn(id):vz(name);
@@ -1222,8 +1457,10 @@ function snackHTML(sn,ai){
   <div class="card-h"><h3>${esc(vz(sn.n))}</h3><span class="time">${clock}${esc(time)} Min.</span></div>
   <p class="desc">${esc(vz(sn.why))}</p>
   <div class="meta">${ai?'<span class="tag-ai">von Claude</span>':''}${devs?`<span>${esc(devs)}</span>`:''}${missDev.length?`<span class="warn">Braucht: ${esc(missDev.join(', '))}</span>`:''}</div>
+  ${nut?nutStrip(nut,'pro Portion'+(nut.pl?' ('+nut.pl+')':'')):''}
   <ul class="amounts">${ing}</ul>
   <details><summary>Zubereitung</summary>${method&&method.note?`<p class="note">${esc(method.note)}</p>`:''}<ol>${sn.s.map(s=>`<li>${esc(vz(s))}</li>`).join('')}</ol>${sn.tip?`<p class="small muted" style="margin-top:8px">Tipp: ${esc(vz(sn.tip))}</p>`:''}</details>
+  ${nut?nutDetails(nut):''}
  </article>`;
 }
 function renderSnacks(){
@@ -1281,7 +1518,22 @@ function renderDiet(){
  $('#dietVeg').setAttribute('aria-pressed',String(!vegan()));$('#dietVegan').setAttribute('aria-pressed',String(vegan()));
  $('#obVeg').setAttribute('aria-pressed',String(!vegan()));$('#obVegan').setAttribute('aria-pressed',String(vegan()));
 }
-function renderAll(){renderDiet();renderCook();renderSnacks();renderStock();renderKitchen();}
+const NW={q:'',cat:'all',sort:'name',dir:1};
+function renderNutTab(){
+ $('#nwCats').innerHTML=[['all','Alle'],...CATS].map(([c,l])=>`<button type="button" data-c="${c}" aria-pressed="${NW.cat===c}">${esc(vegan()&&c==='m'?'Milch-Alternativen':l)}</button>`).join('');
+ const q=NW.q.trim().toLowerCase();const qid=q?lookup(q):null;
+ let list=Object.values(I).filter(x=>!(vegan()&&(x.id==='eier'||VALT[x.id]))&&(NW.cat==='all'||x.c===NW.cat)).map(x=>{const a=nv(x.id)||[0,0,0,0,0];return {id:x.id,name:dn(x.id),note:NOTE[x.id]||'',kcal:kcalOf(a),p:a[0],c:a[1],z:a[2],f:a[3],b:a[4]};});
+ if(q)list=list.filter(r=>r.name.toLowerCase().includes(q)||r.id===qid);
+ const k=NW.sort;list.sort((a,b)=>k==='name'?a.name.localeCompare(b.name,'de')*NW.dir:(a[k]-b[k])*NW.dir);
+ const cols=[['name','Zutat'],['kcal','kcal'],['p','Eiweiß'],['c','Kohlenh.'],['z','Zucker'],['f','Fett'],['b','Ballastst.']];
+ const head='<thead><tr>'+cols.map(([c,l])=>`<th class="${c==='name'?'':'num'}" aria-sort="${k===c?(NW.dir>0?'ascending':'descending'):'none'}"><button type="button" class="sortbtn" data-k="${c}">${l}${k===c?(NW.dir>0?' ↑':' ↓'):''}</button></th>`).join('')+'</tr></thead>';
+ const body=list.map(r=>`<tr><td><span class="nm">${esc(r.name)}</span>${r.note?` <span class="small muted">${esc(r.note)}</span>`:''}</td><td class="num"><b>${fmt(r.kcal)}</b></td><td class="num">${fmt(r.p)}</td><td class="num">${fmt(r.c)}</td><td class="num">${fmt(r.z)}</td><td class="num">${fmt(r.f)}</td><td class="num">${fmt(r.b)}</td></tr>`).join('');
+ $('#nwTable').innerHTML=head+'<tbody>'+(body||'<tr><td colspan="7" class="muted">Keine Zutat gefunden.</td></tr>')+'</tbody>';
+}
+$('#nwSearch').addEventListener('input',e=>{NW.q=e.target.value;renderNutTab();});
+$('#nwCats').addEventListener('click',e=>{const b=e.target.closest('button[data-c]');if(!b)return;NW.cat=b.dataset.c;renderNutTab();});
+$('#nwTable').addEventListener('click',e=>{const b=e.target.closest('.sortbtn');if(!b)return;const k=b.dataset.k;if(NW.sort===k)NW.dir*=-1;else{NW.sort=k;NW.dir=k==='name'?1:-1;}renderNutTab();});
+function renderAll(){renderDiet();renderCook();renderSnacks();renderStock();renderKitchen();renderNutTab();}
 
 /* ============ EVENTS ============ */
 $('#addForm').addEventListener('submit',e=>{e.preventDefault();const i=$('#ingInput');addIngredients(i.value);i.value='';i.focus();});
@@ -1311,7 +1563,7 @@ $('#copyList').addEventListener('click',()=>{
 });
 
 /* Tabs */
-const TABS=['kochen','snacks','einkauf','kueche'];
+const TABS=['kochen','snacks','einkauf','naehrwerte','kueche'];
 function showTab(t){
  if(!TABS.includes(t))t='kochen';
  for(const x of TABS){$('#tab-'+x).setAttribute('aria-selected',String(x===t));$('#p-'+x).hidden=x!==t;}
@@ -1359,8 +1611,8 @@ Verfügbare Küchengeräte: ${ownedNames()}. Verwende KEINE anderen Geräte. Mes
 Erfinde 3 unterschiedliche Gerichte, die hauptsächlich die vorhandenen Zutaten nutzen; höchstens 2 Zutaten dürfen fehlen. Nicht diese Gerichte wiederholen: ${known.join(', ')||'–'}.
 Mengen für 2 Portionen. Schätze die Zubereitungszeit realistisch für die genannten Geräte.
 Antworte NUR mit einem JSON-Array, Beispiel:
-[{"name":"…","beschreibung":"ein Satz","minuten":25,"geraete":["Herd"],"zutaten":[{"name":"Zucchini","vorhanden":true},{"name":"Limette","vorhanden":false}],"schritte":["1 Zucchini würfeln …","…"],"aufpimpen":[{"zutat":"Geröstete Kürbiskerne","warum":"Crunch und Zink"}]}]
-3–5 Schritte pro Gericht, 3 Aufpimpen-Vorschläge (optionale Extra-Zutaten), alles auf Deutsch.`;
+[{"name":"…","beschreibung":"ein Satz","minuten":25,"geraete":["Herd"],"zutaten":[{"name":"Zucchini","menge":"200 g","kcal":34,"vorhanden":true},{"name":"Limette","menge":"1 Stück","kcal":15,"vorhanden":false}],"schritte":["1 Zucchini würfeln …","…"],"aufpimpen":[{"zutat":"Geröstete Kürbiskerne","warum":"Crunch und Zink"}],"naehrwerte_pro_portion":{"kcal":480,"eiweiss":22,"kohlenhydrate":55,"zucker":9,"fett":16,"ballaststoffe":12}}]
+3–5 Schritte pro Gericht, 3 Aufpimpen-Vorschläge (optionale Extra-Zutaten). "kcal" bei den Zutaten gilt für die angegebene Menge (beide Portionen zusammen), die Nährwerte in Gramm pro Portion – realistisch geschätzt aus den Mengen. Alles auf Deutsch.`;
  aiCtl=new AbortController();
  const btn=$('#aiBtn'),stop=$('#aiStop'),st=$('#aiStatus');
  btn.disabled=true;stop.hidden=false;st.className='ai-status dots';st.textContent='Claude denkt nach';
@@ -1373,7 +1625,7 @@ Antworte NUR mit einem JSON-Array, Beispiel:
      return {name:String(x.name),desc:String(x.beschreibung||''),time:Math.round(Number(x.minuten))||'?',devices:Array.isArray(x.geraete)?x.geraete.map(String):[],note:'',
        chips:z.filter(i=>i&&i.name).map(i=>({label:String(i.name),state:i.vorhanden===false?'missing':'have'})),missing:miss,vegCount:0,
        pimp:(Array.isArray(x.aufpimpen)?x.aufpimpen:[]).filter(p=>p&&p.zutat).map(p=>({label:String(p.zutat),why:String(p.warum||''),have:false})),
-       steps:x.schritte.map(String),source:'claude'};
+       steps:x.schritte.map(String),nut:aiNut(x,2),por:2,source:'claude'};
    });
    $('#aiResults').innerHTML=views.map(cardHTML).join('');
    st.className='ai-status';st.textContent=views.length?'':'Keine brauchbare Antwort – bitte noch einmal versuchen.';
@@ -1397,14 +1649,14 @@ Die Person hat Lust auf: "${text.trim().slice(0,120)}".
 Schlage EINE gesündere, selbstgemachte Alternative vor, die geschmacklich in dieselbe Richtung geht.
 Verfügbare Küchengeräte: ${ownedNames()}. Verwende KEINE anderen Geräte.
 Antworte NUR mit einem JSON-Objekt, Beispiel:
-{"name":"…","ersetzt":"Gummibärchen","warum":"ein Satz, warum gesünder","minuten":15,"geraete":["Herd"],"zutaten":[{"menge":"200 g","name":"TK-Beeren"}],"schritte":["…"],"tipp":"…"}
-3–5 Schritte, alles auf Deutsch.`;
+{"name":"…","ersetzt":"Gummibärchen","warum":"ein Satz, warum gesünder","minuten":15,"geraete":["Herd"],"portionen":4,"zutaten":[{"menge":"200 g","name":"TK-Beeren","kcal":90}],"schritte":["…"],"tipp":"…","naehrwerte_pro_portion":{"kcal":120,"eiweiss":3,"kohlenhydrate":18,"zucker":12,"fett":4,"ballaststoffe":3}}
+3–5 Schritte. "kcal" bei den Zutaten gilt für die angegebene Menge, die Nährwerte in Gramm pro Portion, realistisch geschätzt. Alles auf Deutsch.`;
  btn.disabled=true;st.className='ai-status dots';st.textContent='Claude sucht eine Alternative';
  try{
    const x=await sampleFn.json(prompt,{cache:false});
    if(!x||!x.name||!Array.isArray(x.schritte))throw {code:'invalid_json'};
    const sn={n:String(x.name),rep:String(x.ersetzt||text),why:String(x.warum||''),time:Math.round(Number(x.minuten))||'?',devices:Array.isArray(x.geraete)?x.geraete.map(String):[],
-     ing:(Array.isArray(x.zutaten)?x.zutaten:[]).filter(i=>i&&i.name).map(i=>[String(i.menge||''),String(i.name),null]),s:x.schritte.map(String),tip:x.tipp?String(x.tipp):''};
+     ing:(Array.isArray(x.zutaten)?x.zutaten:[]).filter(i=>i&&i.name).map(i=>[String(i.menge||''),String(i.name),null]),s:x.schritte.map(String),tip:x.tipp?String(x.tipp):'',nut:aiNut(x,Math.max(1,Math.round(Number(x.portionen))||1))};
    $('#snackAiResults').insertAdjacentHTML('afterbegin',snackHTML(sn,true));
    st.className='ai-status';st.textContent='';
  }catch(e){

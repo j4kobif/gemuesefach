@@ -5,6 +5,7 @@ Gesund kochen mit dem, was da ist – eine Website, die aus deinen Zutaten veget
 ## Funktionen
 - **Zutaten eingeben** und passende Gerichte mit geschätzter Zubereitungszeit bekommen (68 Rezepte, davon 14 Frühstücksideen, Mengen für 2 Portionen)
 - **Küchengeräte-Abfrage** beim ersten Start, jederzeit unter „Meine Küche“ änderbar – Vorschläge und Zeiten passen sich an (z. B. Airfryer statt Ofen)
+- **Nährwerte**: kcal, Eiweiß, Kohlenhydrate, Zucker, Fett und Ballaststoffe pro Portion für jedes Rezept und jeden Snack, mit Mengenangaben je Zutat und % der Referenzmenge; eigener Tab mit einer sortierbaren Nährwerttabelle aller Zutaten (pro 100 g)
 - **Aufpimpen**: optionale Extra-Zutaten für jedes Gericht
 - **Vegetarisch oder vegan** per Schalter – Milchprodukte und Eier werden automatisch ersetzt
 - **Gesunde Snacks**: 12 selbstgemachte Alternativen, z. B. Schoko-Haselnuss-Creme mit Datteln statt Nuss-Nougat-Creme
