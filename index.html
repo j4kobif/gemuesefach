@@ -210,6 +210,11 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Unverträglichkeiten */
+.tag-adapt{font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:6px;border:1px solid var(--squash);color:var(--squash)}
+.chip.bad{border-color:var(--beet);color:var(--beet)}
+.aghint{font-size:13.5px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.agcell{font-size:12.5px;color:var(--ink-2);min-width:120px}
 /* Nährwerte */
 .nutbox{display:grid;gap:5px}
 .nut{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;text-align:center;font-size:12px;color:var(--ink-2);background:var(--surface-2);border-radius:10px;padding:7px 4px}
@@ -292,6 +297,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
             <span class="small muted" id="basicsHint">Salz, Pfeffer und Öl setzen wir voraus.</span>
             <button type="button" class="linkbtn" id="clearChips">Alle entfernen</button>
           </div>
+          <p class="aghint" id="agHint" hidden></p>
           <label class="check"><input type="checkbox" id="useStock"><span>Vorrat mit einbeziehen <span class="muted" id="stockCount"></span></span></label>
           <div style="display:grid;gap:6px">
             <span class="lbl">Schnell hinzufügen</span>
@@ -438,6 +444,12 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
       </div>
       <div class="panel kpi" id="kitchenKpi"></div>
       <div class="devgrid" id="kitchenGrid"></div>
+      <div style="display:grid;gap:6px;max-width:66ch;margin-top:14px">
+        <h2 style="font-size:24px">Unverträglichkeiten &amp; Allergien</h2>
+        <p class="muted">Wähle aus, was du nicht verträgst. Wo es eine passende Alternative gibt, tauschen wir die Zutat aus (z. B. laktosefreier Joghurt oder glutenfreie Nudeln). Gerichte, die ohne die Zutat nicht funktionieren, blenden wir aus.</p>
+      </div>
+      <div class="devgrid" id="allergyGrid"></div>
+      <p class="small muted">Die Anpassungen sind eine Orientierung. Bitte prüfe bei Allergien immer die Zutatenliste der Produkte, die du kaufst – Rezepturen und Spuren unterscheiden sich je nach Hersteller.</p>
     </div>
   </section>
 
@@ -455,6 +467,10 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
       <p class="muted">Danach richten sich die Vorschläge und die geschätzten Zeiten. Du kannst das jederzeit unter „Meine Küche“ ändern.</p>
     </div>
     <div class="devgrid" id="obGrid"></div>
+    <div style="display:grid;gap:6px">
+      <span class="lbl">Unverträglichkeiten (optional)</span>
+      <div class="devgrid" id="obAllergy"></div>
+    </div>
     <div style="display:grid;gap:6px">
       <span class="lbl">Wie isst du?</span>
       <div class="seg" role="group" aria-label="Ernährungsweise">
@@ -1210,22 +1226,65 @@ const S={
  useStock:store.get('useStock',true),
  fresh:store.get('fresh',[]),
  persons:store.get('persons',1),
+ allergies:(store.get('allergies',[])||[]).filter(k=>['laktose','milch','ei','gluten','nuesse','erdnuss','soja','sesam','sellerie','senf'].includes(k)),
  listStaples:store.get('listStaples',true),
  maxTime:0, meal:'all', showAll:false
 };
 if(!Array.isArray(S.chips)){S.chips=['zucchini','paprika','kichererbsen','zwiebel','feta'].map(id=>({label:I[id].n,id}));S.example=true;}
 const vegan=()=>S.diet==='vegan';
-const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('listStaples',S.listStaples);};
+const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('listStaples',S.listStaples);store.set('allergies',S.allergies);};
 
 /* ============ HILFEN ============ */
 const $=(s,el=document)=>el.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isVeg=id=>!I[id]||!I[id].vg;
-const dn=id=>{const x=I[id];if(!x)return id;return vegan()&&x.vg?x.vg:x.n;};
+/* ============ UNVERTRÄGLICHKEITEN ============ */
+const ALLERGIES=[
+ ['laktose','Laktoseintoleranz','Milchprodukte in laktosefreier Variante'],
+ ['milch','Milcheiweißallergie','Milchprodukte durch pflanzliche ersetzen'],
+ ['ei','Eier','Ei-Ersatz oder Gerichte ohne Ei'],
+ ['gluten','Gluten / Zöliakie','glutenfreie Nudeln, Brot und Co.'],
+ ['nuesse','Nüsse (Schalenfrüchte)','ohne Walnuss, Haselnuss, Cashew und Pesto'],
+ ['erdnuss','Erdnüsse','ohne Erdnussmus und Erdnüsse'],
+ ['soja','Soja','ohne Tofu und Tempeh, sojafreie Alternativen'],
+ ['sesam','Sesam','ohne Tahini und Sesam'],
+ ['sellerie','Sellerie','auch selleriefreie Brühe'],
+ ['senf','Senf','ohne Senf']
+];
+const AGN=Object.fromEntries(ALLERGIES.map(a=>[a[0],a[1]]));
+/* Zutaten, die bei einer Allergie wegfallen */
+const EXC={nuesse:['nuesse','haselnuesse','cashews','pesto'],erdnuss:['erdnussmus'],soja:['tofu','raeuchertofu','tempeh','edamame','miso'],sesam:['tahini'],senf:['senf'],sellerie:['sellerie']};
+/* Zutaten, die durch eine verträgliche Variante ersetzt werden */
+const LBL={
+ gluten:{nudeln:'Glutenfreie Nudeln',brot:'Glutenfreies Brot',tortilla:'Mais-Tortillas',mehl:'Glutenfreies Mehl',lasagne:'Glutenfreie Lasagneplatten',gnocchi:'Glutenfreie Gnocchi',haferflocken:'Glutenfreie Haferflocken',couscous:'Maiscouscous',bulgur:'Quinoa (statt Bulgur)',sojasauce:'Tamari (glutenfrei)',vegan_chicken:'Veganes Chicken (glutenfrei)',vegan_hack:'Veganes Hack (glutenfrei)',bruehe:'Gemüsebrühe (glutenfrei)'},
+ soja:{vegan_chicken:'Erbsenprotein-Chicken (sojafrei)',vegan_hack:'Erbsenhack (sojafrei)',sojasauce:'Kokos-Aminos (statt Sojasauce)',joghurt:'Haferjoghurt',quark:'Haferquark'},
+ sesam:{kerne:'Kürbis- oder Sonnenblumenkerne'},
+ sellerie:{bruehe:'Gemüsebrühe ohne Sellerie'},
+ laktose:{milch:'Laktosefreie Milch',joghurt:'Laktosefreier Joghurt',quark:'Laktosefreier Quark',sahne:'Laktosefreie Sahne',kaese:'Gereifter Käse (laktosefrei)',mozzarella:'Laktosefreier Mozzarella',feta:'Laktosefreier Feta',parmesan:'Parmesan (von Natur aus laktosefrei)',butter:'Laktosefreie Butter',halloumi:'Laktosefreier Halloumi'}
+};
+/* Text-Prüfung für Aufpimp-Vorschläge ohne eigene Zutat */
+const TXT={nuesse:/nüss|nuss|mandel|cashew|pinienkern|pesto/i,erdnuss:/erdnuss|erdnüss/i,sesam:/sesam|tahini/i,senf:/senf/i,soja:/tofu|soja|edamame|miso|tempeh/i,sellerie:/sellerie/i};
+/* Allergene je Zutat (EU-Kennzeichnung) für die Nährwerttabelle */
+const AG_OF={nudeln:['Gluten'],brot:['Gluten'],tortilla:['Gluten'],mehl:['Gluten'],lasagne:['Gluten'],gnocchi:['Gluten'],couscous:['Gluten'],bulgur:['Gluten'],haferflocken:['Gluten (Hafer)'],sojasauce:['Soja','Gluten'],miso:['Soja'],tofu:['Soja'],raeuchertofu:['Soja'],tempeh:['Soja'],edamame:['Soja'],vegan_chicken:['meist Soja','ggf. Gluten'],vegan_hack:['meist Soja'],eier:['Ei'],nuesse:['Schalenfrüchte'],haselnuesse:['Schalenfrüchte'],cashews:['Schalenfrüchte'],pesto:['Milch','Schalenfrüchte'],erdnussmus:['Erdnuss'],tahini:['Sesam'],kerne:['ggf. Sesam'],senf:['Senf'],sellerie:['Sellerie'],bruehe:['oft Sellerie'],feta:['Milch'],mozzarella:['Milch'],parmesan:['Milch'],kaese:['Milch'],joghurt:['Milch'],quark:['Milch'],milch:['Milch'],sahne:['Milch'],butter:['Milch'],halloumi:['Milch'],zartbitter:['ggf. Milchspuren']};
+const AG_V={joghurt:['Soja'],quark:['Soja'],pesto:['Schalenfrüchte'],milch:['ggf. Gluten (Hafer)'],sahne:['ggf. Gluten (Hafer)'],halloumi:['Soja'],parmesan:[]};
+const has=k=>S.allergies.includes(k);
+const plantSwap=id=>{const x=I[id];if(!x||!x.vg)return false;if(vegan())return true;if(id==='eier')return has('ei');if(x.c==='m')return has('milch');return false;};
+const excluded=id=>Object.keys(EXC).some(k=>has(k)&&EXC[k].includes(id));
+const baseName=id=>{const x=I[id];return vegan()&&x.vg?x.vg:x.n;};
+const dn=id=>{const x=I[id];if(!x)return id==='oel'?'Öl':id;const ps=plantSwap(id);let n=ps?x.vg:x.n;
+ for(const k of ['gluten','soja','sesam','sellerie']){if(has(k)&&LBL[k][id]&&(k!=='soja'||ps||!['joghurt','quark'].includes(id)))n=LBL[k][id];}
+ if(has('laktose')&&!ps&&LBL.laktose[id])n=LBL.laktose[id];
+ return n;};
+const agList=id=>{let l=plantSwap(id)?(AG_V[id]||[]):(AG_OF[id]||[]);
+ if(has('soja')&&plantSwap(id)&&(id==='joghurt'||id==='quark'))l=['ggf. Gluten (Hafer)'];
+ if(has('gluten')&&LBL.gluten[id])l=l.filter(x=>!/Gluten/.test(x));
+ if(has('soja')&&LBL.soja[id]&&!plantSwap(id))l=l.filter(x=>!/Soja/.test(x));
+ return l;};
+const hiddenIng=id=>excluded(id)||(id==='eier'&&plantSwap('eier'))||(!!VALT[id]&&plantSwap(id));
 const VWORDS=[['Kräuterquark','Kräuter-Soja-Skyr'],['Milch','Haferdrink'],['Joghurt','Sojajoghurt'],['Feta','Vegan-Feta'],['Parmesan','Hefeflocken'],['Mozzarella','Vegan-Mozzarella'],['Käse','Pflanzenkäse'],['Sahne','Hafer-Cuisine'],['Butter','Pflanzenmargarine'],['Honig','Ahornsirup'],['Quark','Soja-Skyr']];
 const L='A-Za-zÄÖÜäöüß';
 const VRX=VWORDS.map(([a,b])=>[new RegExp('(^|[^'+L+'])'+a+'(?![a-zäöüß])','g'),b]);
-const vz=t=>{if(!vegan()||!t)return t;let o=t;for(const [rx,b] of VRX)o=o.replace(rx,(m,p)=>p+b);return o;};
+const vz=t=>{if(!(vegan()||has('milch'))||!t)return t;let o=t;for(const [rx,b] of VRX)o=o.replace(rx,(m,p)=>p+b);return o;};
 const clock='<svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.5V8l2.5 1.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2600);}
 
@@ -1241,7 +1300,7 @@ function lookup(raw){
 
 /* ============ NÄHRWERT-RECHNUNG ============ */
 const kcalOf=a=>4*a[0]+4*a[1]+9*a[3]+2*a[4];
-const nv=id=>(vegan()&&NUTV[id])||NUT[id]||null;
+const nv=id=>(plantSwap(id)&&NUTV[id])||NUT[id]||null;
 const fmt=n=>{if(n==null||isNaN(n))return '–';const a=Math.abs(n);return a>0&&a<10?String(Math.round(n*10)/10).replace('.',','):String(Math.round(n));};
 function calcNut(items,por){
  const tot={kcal:0,p:0,c:0,z:0,f:0,b:0};const rows=[];
@@ -1299,14 +1358,15 @@ function missingDevices(methods){
 /* ============ REZEPT-MATCHING ============ */
 function altsFor(group,r){
  let alts=group.split('|');
- if(vegan()){
-   alts=alts.map(a=>isVeg(a)?a:(r.swaps&&r.swaps[a])||a);
-   const v=alts.filter(isVeg);
-   if(v.length&&v.length<alts.length)alts=v;
-   alts=alts.flatMap(a=>VALT[a]?[a,VALT[a]]:[a]);
- }
+ alts=alts.map(a=>plantSwap(a)?((r.swaps&&r.swaps[a])||a):a);
+ const v=alts.filter(a=>!plantSwap(a));
+ if(v.length&&v.length<alts.length)alts=v;
+ alts=alts.flatMap(a=>plantSwap(a)&&VALT[a]?[a,VALT[a]]:[a]);
+ alts=alts.filter(a=>!excluded(a)&&!(a==='eier'&&plantSwap('eier')));
  return [...new Set(alts)];
 }
+const swapActive=r=>!!(r.swaps&&Object.keys(r.swaps).some(plantSwap));
+const recipeAllowed=r=>!(vegan()&&r.noVegan)&&r.core.every(g=>altsFor(g,r).length>0);
 function haveSets(){
  const user=new Set(S.chips.map(c=>c.id).filter(Boolean));
  const stock=new Set(S.useStock?S.stock:[]);
@@ -1315,36 +1375,40 @@ function haveSets(){
 function recipeView(r,owned,user,have){
  const method=pickMethod(r.m,owned);
  const chips=[];let missing=0,userHits=0;const used=new Set();
- const Q=QTY[r.id]||[[],{}];const sq=SQ[r.id]||{};const items=[];
+ const Q=QTY[r.id]||[[],{}];const sq=SQ[r.id]||{};const items=[];const sw=swapActive(r);const adapt=[];
+ if(!recipeAllowed(r))return {allergy:true,r};
+ if(sw&&!vegan())for(const [k,t] of Object.entries(r.swaps))if(plantSwap(k))adapt.push(I[k].n+' → '+dn(t));
+ const noteAdapt=id=>{if(!I[id])return;const b=baseName(id),d=dn(id);if(b!==d&&!adapt.includes(b+' → '+d))adapt.push(b+' → '+d);};
  r.core.forEach((g,i)=>{
    const alts=altsFor(g,r);
    const u=alts.find(a=>user.has(a)),h=u||alts.find(a=>have.has(a));
    if(u)userHits++;
    if(h){used.add(h);chips.push({label:dn(h),state:u?'have':'stock'});}
    else{missing++;chips.push({label:alts.slice(0,2).map(dn).join(' / '),state:'missing'});}
-   const c=h||alts[0];items.push({id:c,g:vegan()&&sq[c]!=null?sq[c]:Q[0][i],label:dn(c)});
+   const c=h||alts[0];noteAdapt(c);items.push({id:c,g:sw&&sq[c]!=null?sq[c]:Q[0][i],label:dn(c)});
  });
  for(let [id,g] of Object.entries(Q[1])){
    let use=id;
-   if(vegan()&&!isVeg(id)){const sw=r.swaps&&r.swaps[id];if(sw){use=sw;if(sq[sw]!=null)g=sq[sw];}else if(id==='eier')continue;}
-   items.push({id:use,g,label:use==='oel'?'Öl':dn(use)});
+   if(plantSwap(id)){const t=r.swaps&&r.swaps[id];if(t){use=t;if(sq[t]!=null)g=sq[t];}else if(id==='eier')continue;}
+   if(excluded(use)){if(I[use])adapt.push(I[use].n+' weglassen');continue;}
+   noteAdapt(use);items.push({id:use,g,label:use==='oel'?'Öl':dn(use)});
  }
  const por=POR[r.id]||2;const nut=calcNut(items,por);
  for(const o of r.opt){
-   if(vegan()&&o==='eier'&&!(r.swaps&&r.swaps.eier))continue;
    const alts=altsFor(o,r);const h=alts.find(a=>have.has(a)&&!used.has(a));
    if(h){used.add(h);if(user.has(h))userHits++;chips.push({label:dn(h),state:'extra'});}
  }
  const vegCount=[...used].filter(id=>I[id]&&(I[id].c==='g'||I[id].c==='o')).length;
- const pimp=r.p.filter(p=>!(vegan()&&p[2]==='eier')).map(p=>({label:vz(p[0]),why:p[1],have:!!(p[2]&&have.has(p[2]))}));
- const steps=r.s.map(s=>Array.isArray(s)?(vegan()?s[1]:vz(s[0])):vz(s));
- return {r,name:vegan()&&r.vn?r.vn:r.n,desc:vegan()&&r.vd?r.vd:vz(r.d),method,time:method?method.time:null,devices:method?method.names:[],note:method?method.note:'',chips,missing,userHits,vegCount,pimp,steps,nut,por,source:'db'};
+ const pimp=r.p.filter(p=>!(p[2]&&(excluded(p[2])||(p[2]==='eier'&&plantSwap('eier'))))&&!Object.keys(TXT).some(k=>has(k)&&TXT[k].test(p[0])))
+   .map(p=>{let l=vz(p[0]);if(p[2]&&I[p[2]]&&!plantSwap(p[2])&&dn(p[2])!==I[p[2]].n)l+=` (${dn(p[2])})`;return {label:l,why:p[1],have:!!(p[2]&&have.has(p[2]))};});
+ const steps=r.s.map(s=>Array.isArray(s)?((vegan()||has('ei'))?s[1]:vz(s[0])):vz(s));
+ return {r,adapt,name:sw&&r.vn?r.vn:r.n,desc:sw&&r.vd?r.vd:vz(r.d),method,time:method?method.time:null,devices:method?method.names:[],note:method?method.note:'',chips,missing,userHits,vegCount,pimp,steps,nut,por,source:'db'};
 }
 function matchRecipes(){
  const owned=new Set(S.devices);const {user,have}=haveSets();
  const list=[];const blocked=new Set();let blockedCount=0;
  for(const r of RECIPES){
-   if(vegan()&&r.noVegan)continue;
+   if(!recipeAllowed(r))continue;
    if(S.meal!=='all'&&(r.meal||'main')!==S.meal)continue;
    const v=recipeView(r,owned,user,have);
    if(v.userHits===0)continue;
@@ -1368,11 +1432,11 @@ function cardHTML(v){
  return `<article class="card">
   <div class="card-h"><h3>${esc(v.name)}</h3><span class="time">${clock}${esc(v.time)} Min.</span></div>
   <p class="desc">${esc(v.desc)}</p>
-  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}<span>${dev}</span>${veg}</div>
+  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}${v.adapt&&v.adapt.length?'<span class="tag-adapt">angepasst</span>':''}<span>${dev}</span>${veg}</div>
   ${v.nut?nutStrip(v.nut):''}
   <ul class="ings">${chips}</ul>
   ${pimp}
-  <details><summary>Zubereitung · ${v.por||2} ${v.por===1?'Portion':'Portionen'}</summary>${v.note?`<p class="note">${esc(v.note)}</p>`:''}<ol>${v.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></details>
+  <details><summary>Zubereitung · ${v.por||2} ${v.por===1?'Portion':'Portionen'}</summary>${v.adapt&&v.adapt.length?`<p class="note"><b>Für dich angepasst:</b> ${esc(v.adapt.join(' · '))}</p>`:''}${v.note?`<p class="note">${esc(v.note)}</p>`:''}<ol>${v.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol></details>
   ${v.nut?nutDetails(v.nut):''}
  </article>`;
 }
@@ -1380,21 +1444,22 @@ function cardHTML(v){
 /* ============ RENDER: KOCHEN ============ */
 function renderChips(){
  const ul=$('#chips');
- ul.innerHTML=S.chips.map((c,i)=>`<li class="chip${c.id?'':' free'}" title="${c.id?'':'Nicht in der Datenbank – Claude berücksichtigt sie trotzdem'}">${esc(c.id?(vegan()&&I[c.id].vg&&c.label===I[c.id].n?I[c.id].vg:c.label):c.label)}<button type="button" data-i="${i}" aria-label="${esc(c.label)} entfernen">×</button></li>`).join('')||'<li class="small muted">Noch keine Zutaten.</li>';
+ ul.innerHTML=S.chips.map((c,i)=>`<li class="chip${c.id?'':' free'}${c.id&&excluded(c.id)?' bad':''}" title="${c.id?(excluded(c.id)?'Passt nicht zu deinen Unverträglichkeiten':''):'Nicht in der Datenbank – Claude berücksichtigt sie trotzdem'}">${esc(c.id&&c.label===I[c.id].n?dn(c.id):c.label)}<button type="button" data-i="${i}" aria-label="${esc(c.label)} entfernen">×</button></li>`).join('')||'<li class="small muted">Noch keine Zutaten.</li>';
  $('#exampleTag').hidden=!S.example;
  $('#clearChips').hidden=!S.chips.length;
 }
 function renderQuick(){
  const ids=new Set(S.chips.map(c=>c.id));
- const q=QUICK.filter(id=>!(vegan()&&id==='eier'));
+ const q=QUICK.filter(id=>!hiddenIng(id));
  const tip=id=>{const a=nv(id);return a?`${fmt(kcalOf(a))} kcal / 100 g`:'';};
  $('#quick').innerHTML=q.map(id=>`<button type="button" data-id="${id}" aria-pressed="${ids.has(id)}" title="${tip(id)}">${esc(dn(id))}</button>`).join('');
  $('#browse').innerHTML=CATS.map(([c,label])=>{
-   const items=Object.values(I).filter(x=>x.c===c&&!(vegan()&&(x.id==='eier'||VALT[x.id])));
-   return `<div class="cat"><span class="lbl">${esc(vegan()&&c==='m'?'Milch-Alternativen':label)}</span><div class="quick">${items.map(x=>`<button type="button" data-id="${x.id}" aria-pressed="${ids.has(x.id)}" title="${tip(x.id)}">${esc(dn(x.id))}</button>`).join('')}</div></div>`;
+   const items=Object.values(I).filter(x=>x.c===c&&!hiddenIng(x.id));
+   return `<div class="cat"><span class="lbl">${esc((vegan()||has('milch'))&&c==='m'?'Milch-Alternativen':label)}</span><div class="quick">${items.map(x=>`<button type="button" data-id="${x.id}" aria-pressed="${ids.has(x.id)}" title="${tip(x.id)}">${esc(dn(x.id))}</button>`).join('')}</div></div>`;
  }).join('');
  $('#ingList').innerHTML=Object.values(I).map(x=>`<option value="${esc(dn(x.id))}">`).join('');
- const n=S.stock.filter(id=>!(vegan()&&id==='eier')).length;
+ const n=S.stock.filter(id=>!hiddenIng(id)).length;
+ const ah=$('#agHint');if(S.allergies.length){ah.hidden=false;ah.innerHTML=`Angepasst für: <b>${esc(S.allergies.map(k=>AGN[k]).join(', '))}</b> · <button type="button" class="linkbtn" data-goto="kueche">ändern</button>`;}else ah.hidden=true;
  $('#stockCount').textContent=n?`(${n} Produkte abgehakt)`:'(noch nichts abgehakt)';
  $('#useStock').checked=S.useStock;
 }
@@ -1411,7 +1476,11 @@ function renderResults(){
  $('#moreWrap').hidden=S.showAll||list.length<=9;
  $('#moreBtn').textContent=`Alle ${list.length} anzeigen`;
  const b=$('#blocked');
- if(blockedCount){b.hidden=false;b.textContent=`${blockedCount} weitere ${blockedCount===1?'Gericht bräuchte':'Gerichte bräuchten'} ein anderes Gerät (${blockedDevices.slice(0,3).join(', ')}).`;}else b.hidden=true;
+ const hiddenA=RECIPES.filter(r=>!recipeAllowed(r)).length;
+ const msg=[];
+ if(blockedCount)msg.push(`${blockedCount} ${blockedCount===1?'weiteres Gericht bräuchte':'weitere Gerichte bräuchten'} ein anderes Gerät (${blockedDevices.slice(0,3).join(', ')}).`);
+ if(hiddenA&&S.allergies.length)msg.push(`${hiddenA} ${hiddenA===1?'Rezept ist':'Rezepte sind'} wegen deiner Unverträglichkeiten ausgeblendet.`);
+ b.hidden=!msg.length;b.textContent=msg.join(' ');
 }
 function renderCook(){renderChips();renderQuick();renderResults();document.querySelectorAll('.dietWord').forEach(e=>e.textContent=vegan()?'vegan':'vegetarisch');}
 
@@ -1445,10 +1514,10 @@ function snackHTML(sn,ai){
  else{method=pickMethod(sn.m,owned);if(!method)missDev=missingDevices(sn.m);}
  const time=method?method.time:sn.m[0][1];
  let nut=sn.nut||null;
- if(!ai&&SQTY[sn.id]){const [gs,por,pl]=SQTY[sn.id];nut=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:gs[i],label:id&&!isVeg(id)&&vegan()?dn(id):vz(name)})).filter(x=>x.id),por);nut.pl=pl;}
+ if(!ai&&SQTY[sn.id]){const [gs,por,pl]=SQTY[sn.id];nut=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:gs[i],label:id&&I[id]&&dn(id)!==I[id].n?dn(id):vz(name)})).filter(x=>x.id),por);nut.pl=pl;}
  const devs=method?(method.names.length?method.names.join(' · '):'Kein Gerät nötig'):'';
  const ing=sn.ing.map(([q,name,id])=>{
-   const label=id&&!isVeg(id)&&vegan()?dn(id):vz(name);
+   const label=id&&I[id]&&dn(id)!==I[id].n?dn(id):vz(name);
    const ok=id&&have.has(id);
    return `<span class="q">${esc(q)}</span><span>${esc(label)}${ok?' <span class="ok" title="hast du">✓</span>':''}</span>`;
  }).join('');
@@ -1465,8 +1534,10 @@ function snackHTML(sn,ai){
 }
 function renderSnacks(){
  const owned=new Set(S.devices);
- const sorted=[...SNACKS].sort((a,b)=>(pickMethod(a.m,owned)?0:1)-(pickMethod(b.m,owned)?0:1));
- $('#snackGrid').innerHTML=sorted.map(s=>snackHTML(s,false)).join('');
+ const ok=SNACKS.filter(s=>!s.ing.some(l=>l[2]&&excluded(l[2])));
+ const sorted=ok.sort((a,b)=>(pickMethod(a.m,owned)?0:1)-(pickMethod(b.m,owned)?0:1));
+ const hid=SNACKS.length-ok.length;
+ $('#snackGrid').innerHTML=sorted.map(s=>snackHTML(s,false)).join('')+(hid?`<p class="small muted" style="grid-column:1/-1">${hid} ${hid===1?'Snack ist':'Snacks sind'} wegen deiner Unverträglichkeiten ausgeblendet.</p>`:'');
 }
 
 /* ============ RENDER: EINKAUF ============ */
@@ -1475,7 +1546,7 @@ for(const r of RECIPES){const ids=new Set([...r.core,...r.opt].flatMap(g=>g.spli
 function renderStock(){
  const st=new Set(S.stock);
  $('#stockGroups').innerHTML=STAPLES.map(g=>{
-   const items=g.items.filter(([id])=>!(vegan()&&id==='eier'));
+   const items=g.items.filter(([id])=>!hiddenIng(id));
    return `<div class="sg"><h3>${esc(g.g)}</h3><div class="sitems">${items.map(([id,why])=>{
      const on=st.has(id);const n=usage[id]||0;
      return `<label class="sitem${on?' on':''}"><input type="checkbox" data-id="${id}"${on?' checked':''}><span style="display:grid;gap:1px;min-width:0;flex:1"><span class="rowline" style="gap:6px"><span class="nm">${esc(dn(id))}</span>${n?`<span class="cnt">in ${n} Gerichten</span>`:''}</span><span class="ds">${esc(vz(why))}</span></span></label>`;
@@ -1492,7 +1563,7 @@ function renderStock(){
 }
 function shoppingItems(){
  const st=new Set(S.stock);
- const staples=S.listStaples?STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>!st.has(id)&&!(vegan()&&id==='eier')).map(dn):[];
+ const staples=S.listStaples?STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>!st.has(id)&&!hiddenIng(id)).map(dn):[];
  return {fresh:[...S.fresh],staples};
 }
 function renderList(){
@@ -1506,11 +1577,14 @@ function renderList(){
 
 /* ============ RENDER: KÜCHE ============ */
 function devGridHTML(sel){return DEVICES.map(([id,n,h])=>`<button type="button" class="dev" data-dev="${id}" aria-pressed="${sel.has(id)}"><b>${esc(n)}</b><span>${esc(h)}</span></button>`).join('');}
+function agGridHTML(){return ALLERGIES.map(([id,n,h])=>`<button type="button" class="dev" data-ag="${id}" aria-pressed="${has(id)}"><b>${esc(n)}</b><span>${esc(h)}</span></button>`).join('');}
+function toggleAllergy(id){S.allergies=has(id)?S.allergies.filter(x=>x!==id):[...S.allergies,id];save();}
 function renderKitchen(){
  const sel=new Set(S.devices);
  $('#kitchenGrid').innerHTML=devGridHTML(sel);
- const rec=RECIPES.filter(r=>!(vegan()&&r.noVegan)&&pickMethod(r.m,sel)).length;
- const sn=SNACKS.filter(s=>pickMethod(s.m,sel)).length;
+ const rec=RECIPES.filter(r=>recipeAllowed(r)&&pickMethod(r.m,sel)).length;
+ const sn=SNACKS.filter(s=>pickMethod(s.m,sel)&&!s.ing.some(l=>l[2]&&excluded(l[2]))).length;
+ $('#allergyGrid').innerHTML=agGridHTML();
  $('#kitchenKpi').innerHTML=`<div><b>${S.devices.length}</b><span class="small muted">Geräte ausgewählt</span></div><div><b>${rec}/${RECIPES.length}</b><span class="small muted">Gerichte kochbar</span></div><div><b>${sn}/${SNACKS.length}</b><span class="small muted">Snacks machbar</span></div>`;
  $('#devBtnTxt').textContent=`${S.devices.length} ${S.devices.length===1?'Gerät':'Geräte'}`;
 }
@@ -1520,15 +1594,15 @@ function renderDiet(){
 }
 const NW={q:'',cat:'all',sort:'name',dir:1};
 function renderNutTab(){
- $('#nwCats').innerHTML=[['all','Alle'],...CATS].map(([c,l])=>`<button type="button" data-c="${c}" aria-pressed="${NW.cat===c}">${esc(vegan()&&c==='m'?'Milch-Alternativen':l)}</button>`).join('');
+ $('#nwCats').innerHTML=[['all','Alle'],...CATS].map(([c,l])=>`<button type="button" data-c="${c}" aria-pressed="${NW.cat===c}">${esc((vegan()||has('milch'))&&c==='m'?'Milch-Alternativen':l)}</button>`).join('');
  const q=NW.q.trim().toLowerCase();const qid=q?lookup(q):null;
- let list=Object.values(I).filter(x=>!(vegan()&&(x.id==='eier'||VALT[x.id]))&&(NW.cat==='all'||x.c===NW.cat)).map(x=>{const a=nv(x.id)||[0,0,0,0,0];return {id:x.id,name:dn(x.id),note:NOTE[x.id]||'',kcal:kcalOf(a),p:a[0],c:a[1],z:a[2],f:a[3],b:a[4]};});
+ let list=Object.values(I).filter(x=>!hiddenIng(x.id)&&(NW.cat==='all'||x.c===NW.cat)).map(x=>{const a=nv(x.id)||[0,0,0,0,0];return {id:x.id,name:dn(x.id),note:NOTE[x.id]||'',ag:agList(x.id),kcal:kcalOf(a),p:a[0],c:a[1],z:a[2],f:a[3],b:a[4]};});
  if(q)list=list.filter(r=>r.name.toLowerCase().includes(q)||r.id===qid);
  const k=NW.sort;list.sort((a,b)=>k==='name'?a.name.localeCompare(b.name,'de')*NW.dir:(a[k]-b[k])*NW.dir);
  const cols=[['name','Zutat'],['kcal','kcal'],['p','Eiweiß'],['c','Kohlenh.'],['z','Zucker'],['f','Fett'],['b','Ballastst.']];
- const head='<thead><tr>'+cols.map(([c,l])=>`<th class="${c==='name'?'':'num'}" aria-sort="${k===c?(NW.dir>0?'ascending':'descending'):'none'}"><button type="button" class="sortbtn" data-k="${c}">${l}${k===c?(NW.dir>0?' ↑':' ↓'):''}</button></th>`).join('')+'</tr></thead>';
- const body=list.map(r=>`<tr><td><span class="nm">${esc(r.name)}</span>${r.note?` <span class="small muted">${esc(r.note)}</span>`:''}</td><td class="num"><b>${fmt(r.kcal)}</b></td><td class="num">${fmt(r.p)}</td><td class="num">${fmt(r.c)}</td><td class="num">${fmt(r.z)}</td><td class="num">${fmt(r.f)}</td><td class="num">${fmt(r.b)}</td></tr>`).join('');
- $('#nwTable').innerHTML=head+'<tbody>'+(body||'<tr><td colspan="7" class="muted">Keine Zutat gefunden.</td></tr>')+'</tbody>';
+ const head='<thead><tr>'+cols.map(([c,l])=>`<th class="${c==='name'?'':'num'}" aria-sort="${k===c?(NW.dir>0?'ascending':'descending'):'none'}"><button type="button" class="sortbtn" data-k="${c}">${l}${k===c?(NW.dir>0?' ↑':' ↓'):''}</button></th>`).join('')+'<th>Allergene</th></tr></thead>';
+ const body=list.map(r=>`<tr><td><span class="nm">${esc(r.name)}</span>${r.note?` <span class="small muted">${esc(r.note)}</span>`:''}</td><td class="num"><b>${fmt(r.kcal)}</b></td><td class="num">${fmt(r.p)}</td><td class="num">${fmt(r.c)}</td><td class="num">${fmt(r.z)}</td><td class="num">${fmt(r.f)}</td><td class="num">${fmt(r.b)}</td><td class="agcell">${esc(r.ag.join(', '))||'–'}</td></tr>`).join('');
+ $('#nwTable').innerHTML=head+'<tbody>'+(body||'<tr><td colspan="8" class="muted">Keine Zutat gefunden.</td></tr>')+'</tbody>';
 }
 $('#nwSearch').addEventListener('input',e=>{NW.q=e.target.value;renderNutTab();});
 $('#nwCats').addEventListener('click',e=>{const b=e.target.closest('button[data-c]');if(!b)return;NW.cat=b.dataset.c;renderNutTab();});
@@ -1540,6 +1614,9 @@ $('#addForm').addEventListener('submit',e=>{e.preventDefault();const i=$('#ingIn
 $('#chips').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;if(S.example)S.example=false;S.chips.splice(+b.dataset.i,1);save();renderCook();});
 $('#clearChips').addEventListener('click',()=>{S.chips=[];S.example=false;save();renderCook();$('#ingInput').focus();});
 document.querySelector('.drawer').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)toggleIng(b.dataset.id);});
+$('#agHint').addEventListener('click',e=>{if(e.target.closest('[data-goto]')){showTab('kueche');window.scrollTo({top:0});}});
+$('#allergyGrid').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(!b)return;toggleAllergy(b.dataset.ag);renderAll();aiClearOnDiet();});
+$('#obAllergy').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(!b)return;toggleAllergy(b.dataset.ag);renderOb();});
 $('#useStock').addEventListener('change',e=>{S.useStock=e.target.checked;save();renderResults();});
 $('#timeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.maxTime=+b.dataset.t;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderResults();});
 $('#mealSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.meal=b.dataset.m;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderResults();});
@@ -1574,7 +1651,7 @@ $('#devBtn').addEventListener('click',()=>{showTab('kueche');window.scrollTo({to
 
 /* Onboarding */
 function openOnboard(){const o=$('#onboard');o.hidden=false;renderOb();setTimeout(()=>$('#obGrid button')?.focus(),30);}
-function renderOb(){const sel=new Set(S.devices);$('#obGrid').innerHTML=devGridHTML(sel);$('#obCount').textContent=`${S.devices.length} ausgewählt`;}
+function renderOb(){const sel=new Set(S.devices);$('#obGrid').innerHTML=devGridHTML(sel);$('#obAllergy').innerHTML=agGridHTML();$('#obCount').textContent=`${S.devices.length} ausgewählt`;}
 $('#obGrid').addEventListener('click',e=>{const b=e.target.closest('[data-dev]');if(!b)return;const id=b.dataset.dev;S.devices=S.devices.includes(id)?S.devices.filter(x=>x!==id):[...S.devices,id];renderOb();});
 function closeOnboard(){$('#onboard').hidden=true;save();store.set('devices',S.devices);renderAll();}
 $('#obDone').addEventListener('click',closeOnboard);
@@ -1590,6 +1667,10 @@ function dietRules(){
   ?'Ausschließlich VEGAN: keine tierischen Produkte (kein Fleisch, kein Fisch, keine Milchprodukte, keine Eier, kein Honig, keine Gelatine). Pflanzliche Ersatzprodukte wie veganes Chicken, veganes Hack, Tofu, Tempeh, Haferdrink oder Sojajoghurt sind erlaubt.'
   :'Ausschließlich VEGETARISCH: kein Fleisch, kein Fisch, keine Meeresfrüchte, keine Gelatine, kein tierisches Lab. Milchprodukte und Eier sind erlaubt. Vegetarische Ersatzprodukte wie veganes Chicken, veganes Hack, Tofu oder Tempeh sind erlaubt.';
 }
+function allergyRules(){
+ if(!S.allergies.length)return '';
+ return `Unverträglichkeiten/Allergien: ${S.allergies.map(k=>AGN[k]).join(', ')}. Verwende KEINE Zutaten mit diesen Allergenen. Bei Laktoseintoleranz nur laktosefreie Milchprodukte, bei Milcheiweißallergie nur pflanzliche Alternativen, bei Zöliakie nur glutenfreie Produkte (z. B. glutenfreie Nudeln, Tamari statt Sojasauce). Nenne die angepassten Produkte ausdrücklich in den Zutaten.`;
+}
 const HEALTH='Fokus auf gesunde, ausgewogene Ernährung: viel Gemüse und Obst, Vollkorn, Hülsenfrüchte, möglichst wenig Zucker (keinen Haushaltszucker, Süße höchstens aus Obst oder Datteln), wenig Weißmehl, nicht frittiert.';
 function ownedNames(){return S.devices.map(d=>DEV[d].n).join(', ')||'keine (nur Schneidebrett und Schüssel)';}
 let aiCtl=null;
@@ -1599,10 +1680,11 @@ async function genRecipes(){
  if(!sampleFn)return;
  const labels=S.chips.map(c=>c.id?dn(c.id):c.label);
  if(!labels.length){$('#aiStatus').className='ai-status err';$('#aiStatus').textContent='Füge zuerst ein paar Zutaten hinzu.';return;}
- const stock=S.useStock?S.stock.filter(id=>!(vegan()&&id==='eier')).map(dn):[];
+ const stock=S.useStock?S.stock.filter(id=>!hiddenIng(id)).map(dn):[];
  const known=[...document.querySelectorAll('#results h3')].map(h=>h.textContent).slice(0,9);
  const prompt=`Du bist Kochassistent einer deutschsprachigen Rezept-App.
 ${dietRules()}
+${allergyRules()}
 ${HEALTH}
 Vorhandene Zutaten: ${labels.join(', ')}.
 Zusätzlich im Vorrat: ${stock.length?stock.join(', '):'nichts angegeben'}.
@@ -1644,6 +1726,7 @@ async function genSnack(text){
  const st=$('#snackStatus'),btn=$('#snackBtn');
  const prompt=`Du bist Kochassistent einer deutschsprachigen App für gesunde Snacks.
 ${dietRules()}
+${allergyRules()}
 ${HEALTH}
 Die Person hat Lust auf: "${text.trim().slice(0,120)}".
 Schlage EINE gesündere, selbstgemachte Alternative vor, die geschmacklich in dieselbe Richtung geht.
