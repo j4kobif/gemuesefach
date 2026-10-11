@@ -210,6 +210,11 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Gerichte-Reiter */
+.ing.plain{border-color:var(--line);color:var(--ink)}
+.gctrls{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.gctrls .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.gctrls .grp{display:grid;gap:5px}
 /* Unverträglichkeiten */
 .tag-adapt{font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:6px;border:1px solid var(--squash);color:var(--squash)}
 .chip.bad{border-color:var(--beet);color:var(--beet)}
@@ -274,6 +279,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
 
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button role="tab" id="tab-kochen" aria-controls="p-kochen" aria-selected="true">Kochen</button>
+    <button role="tab" id="tab-gerichte" aria-controls="p-gerichte" aria-selected="false">Gerichte</button>
     <button role="tab" id="tab-snacks" aria-controls="p-snacks" aria-selected="false">Snacks</button>
     <button role="tab" id="tab-einkauf" aria-controls="p-einkauf" aria-selected="false">Einkauf</button>
     <button role="tab" id="tab-naehrwerte" aria-controls="p-naehrwerte" aria-selected="false">Nährwerte</button>
@@ -346,6 +352,49 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
           <div class="grid" id="aiResults"></div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- GERICHTE -->
+  <section id="p-gerichte" role="tabpanel" aria-labelledby="tab-gerichte" hidden>
+    <div style="display:grid;gap:18px">
+      <div class="res-head" style="margin:0">
+        <div style="display:grid;gap:4px;max-width:66ch">
+          <h2>Alle Gerichte</h2>
+          <p class="muted" id="gCount">Alle Rezepte auf einen Blick, mit Zeit, Nährwerten und Zubereitung.</p>
+        </div>
+      </div>
+      <div class="panel gctrls">
+        <input id="gSearch" class="search" placeholder="Gericht oder Zutat suchen, z. B. Curry oder Linsen" aria-label="Gericht oder Zutat suchen">
+        <div class="row">
+          <div class="grp"><span class="lbl">Mahlzeit</span>
+            <div class="seg" role="group" aria-label="Mahlzeit" id="gMeal">
+              <button type="button" data-v="all" aria-pressed="true">Alle</button>
+              <button type="button" data-v="main" aria-pressed="false">Hauptgericht</button>
+              <button type="button" data-v="breakfast" aria-pressed="false">Frühstück</button>
+            </div>
+          </div>
+          <div class="grp"><span class="lbl">Zeit</span>
+            <div class="seg" role="group" aria-label="Maximale Zubereitungszeit" id="gTime">
+              <button type="button" data-v="0" aria-pressed="true">Egal</button>
+              <button type="button" data-v="15" aria-pressed="false">≤ 15</button>
+              <button type="button" data-v="30" aria-pressed="false">≤ 30</button>
+              <button type="button" data-v="45" aria-pressed="false">≤ 45 Min.</button>
+            </div>
+          </div>
+          <div class="grp"><span class="lbl">Sortieren</span>
+            <div class="seg" role="group" aria-label="Sortierung" id="gSort">
+              <button type="button" data-v="name" aria-pressed="true">A–Z</button>
+              <button type="button" data-v="time" aria-pressed="false">Zeit</button>
+              <button type="button" data-v="kcal" aria-pressed="false">kcal</button>
+              <button type="button" data-v="protein" aria-pressed="false">Eiweiß</button>
+            </div>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="gOnlyDev"><span>Nur Gerichte, die ich mit meinen Geräten kochen kann</span></label>
+      </div>
+      <div class="grid" id="allGrid"></div>
+      <div class="more" id="gMoreWrap" hidden><button class="ghost" id="gMore" type="button">Alle anzeigen</button></div>
     </div>
   </section>
 
@@ -1422,17 +1471,18 @@ function matchRecipes(){
 }
 
 /* ============ KARTEN ============ */
-function cardHTML(v){
- const status=v.missing===0?'<span class="status ok">Alles da</span>':`<span class="status miss">${v.missing} ${v.missing===1?'Zutat fehlt':'Zutaten fehlen'}</span>`;
- const dev=v.devices.length?esc(v.devices.join(' · ')):'Kein Gerät nötig';
+function cardHTML(v,opt){
+ const list=opt&&opt.list,neutral=list&&!v.userHits;
+ const status=neutral?'':v.missing===0?'<span class="status ok">Alles da</span>':`<span class="status miss">${v.missing} ${v.missing===1?'Zutat fehlt':'Zutaten fehlen'}</span>`;
+ const dev=v.blockedDev?`<span class="warn">Braucht: ${esc(v.blockedDev.join(', '))}</span>`:(v.devices.length?esc(v.devices.join(' · ')):'Kein Gerät nötig');
  const veg=v.vegCount?`<span>${v.vegCount} ${v.vegCount===1?'Sorte':'Sorten'} Obst &amp; Gemüse</span>`:'';
  const ai=v.source==='claude'?'<span class="tag-ai">von Claude</span>':'';
- const chips=v.chips.map(c=>`<li class="ing ${c.state}">${esc(c.label)}</li>`).join('');
+ const chips=v.chips.map(c=>`<li class="ing ${neutral&&c.state==='missing'?'plain':c.state}">${esc(c.label)}</li>`).join('');
  const pimp=v.pimp.length?`<div class="pimp"><h4>Aufpimpen</h4><ul>${v.pimp.map(p=>`<li><b>+ ${esc(p.label)}</b><span class="why">${esc(p.why)}</span>${p.have?'<span class="got">hast du</span>':''}</li>`).join('')}</ul></div>`:'';
  return `<article class="card">
   <div class="card-h"><h3>${esc(v.name)}</h3><span class="time">${clock}${esc(v.time)} Min.</span></div>
   <p class="desc">${esc(v.desc)}</p>
-  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}${v.adapt&&v.adapt.length?'<span class="tag-adapt">angepasst</span>':''}<span>${dev}</span>${veg}</div>
+  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}${v.adapt&&v.adapt.length?'<span class="tag-adapt">angepasst</span>':''}${v.blockedDev?dev:`<span>${dev}</span>`}${veg}</div>
   ${v.nut?nutStrip(v.nut):''}
   <ul class="ings">${chips}</ul>
   ${pimp}
@@ -1463,10 +1513,29 @@ function renderQuick(){
  $('#stockCount').textContent=n?`(${n} Produkte abgehakt)`:'(noch nichts abgehakt)';
  $('#useStock').checked=S.useStock;
 }
+const G={q:'',meal:'all',max:0,sort:'name',onlyDev:false,showAll:false};
+function renderAllRecipes(){
+ const owned=new Set(S.devices);const {user,have}=haveSets();
+ const allowed=RECIPES.filter(recipeAllowed);
+ let list=allowed.map(r=>{const v=recipeView(r,owned,user,have);if(!v.method){v.blockedDev=missingDevices(r.m);v.time=r.m[0][1];}return v;});
+ const q=G.q.trim().toLowerCase();const qid=q?lookup(q):null;
+ if(q)list=list.filter(v=>v.name.toLowerCase().includes(q)||v.desc.toLowerCase().includes(q)||v.chips.some(c=>c.label.toLowerCase().includes(q))||(qid&&v.r.core.concat(v.r.opt).some(g=>g.split('|').includes(qid))));
+ if(G.meal!=='all')list=list.filter(v=>(v.r.meal||'main')===G.meal);
+ if(G.max)list=list.filter(v=>v.time<=G.max);
+ if(G.onlyDev)list=list.filter(v=>!v.blockedDev);
+ const by={name:(a,b)=>a.name.localeCompare(b.name,'de'),time:(a,b)=>a.time-b.time||a.name.localeCompare(b.name,'de'),kcal:(a,b)=>a.nut.per.kcal-b.nut.per.kcal,protein:(a,b)=>b.nut.per.p-a.nut.per.p};
+ list.sort(by[G.sort]);
+ const hid=RECIPES.length-allowed.length;
+ $('#gCount').textContent=`${list.length} von ${RECIPES.length} Gerichten`+(hid&&S.allergies.length?` · ${hid} wegen deiner Unverträglichkeiten ausgeblendet`:'')+(S.chips.some(c=>c.id)?' · grün markiert: Zutaten, die du eingegeben hast':'');
+ const shown=G.showAll?list:list.slice(0,24);
+ $('#allGrid').innerHTML=shown.map(v=>cardHTML(v,{list:true})).join('')||'<div class="empty" style="grid-column:1/-1"><b style="color:var(--ink)">Kein Gericht gefunden.</b><span>Ändere die Suche oder lockere die Filter.</span></div>';
+ $('#gMoreWrap').hidden=G.showAll||list.length<=24;$('#gMore').textContent=`Alle ${list.length} anzeigen`;
+}
 function renderResults(){
+ renderAllRecipes();
  const res=$('#results');
  if(!S.chips.filter(c=>c.id).length){
-   res.innerHTML=`<div class="empty" style="grid-column:1/-1"><b style="color:var(--ink)">Füge links deine Zutaten hinzu.</b><span>Wir zeigen dir Gerichte, die du damit kochen kannst – mit Zeit, fehlenden Zutaten und Extras zum Aufpimpen.</span></div>`;
+   res.innerHTML=`<div class="empty" style="grid-column:1/-1"><b style="color:var(--ink)">Füge links deine Zutaten hinzu.</b><span>Wir zeigen dir Gerichte, die du damit kochen kannst – mit Zeit, fehlenden Zutaten und Extras zum Aufpimpen.</span><span><button type="button" class="linkbtn" data-goto="gerichte">Oder alle Gerichte ansehen</button></span></div>`;
    $('#resTitle').textContent='Vorschläge';$('#moreWrap').hidden=true;$('#blocked').hidden=true;return;
  }
  const {list,blockedCount,blockedDevices}=matchRecipes();
@@ -1614,6 +1683,13 @@ $('#addForm').addEventListener('submit',e=>{e.preventDefault();const i=$('#ingIn
 $('#chips').addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b)return;if(S.example)S.example=false;S.chips.splice(+b.dataset.i,1);save();renderCook();});
 $('#clearChips').addEventListener('click',()=>{S.chips=[];S.example=false;save();renderCook();$('#ingInput').focus();});
 document.querySelector('.drawer').addEventListener('click',e=>{const b=e.target.closest('button[data-id]');if(b)toggleIng(b.dataset.id);});
+$('#results').addEventListener('click',e=>{if(e.target.closest('[data-goto="gerichte"]')){showTab('gerichte');window.scrollTo({top:0});}});
+$('#gSearch').addEventListener('input',e=>{G.q=e.target.value;G.showAll=false;renderAllRecipes();});
+for(const [id,key,num] of [['#gMeal','meal',false],['#gTime','max',true],['#gSort','sort',false]]){
+ $(id).addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;G[key]=num?+b.dataset.v:b.dataset.v;G.showAll=false;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderAllRecipes();});
+}
+$('#gOnlyDev').addEventListener('change',e=>{G.onlyDev=e.target.checked;renderAllRecipes();});
+$('#gMore').addEventListener('click',()=>{G.showAll=true;renderAllRecipes();});
 $('#agHint').addEventListener('click',e=>{if(e.target.closest('[data-goto]')){showTab('kueche');window.scrollTo({top:0});}});
 $('#allergyGrid').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(!b)return;toggleAllergy(b.dataset.ag);renderAll();aiClearOnDiet();});
 $('#obAllergy').addEventListener('click',e=>{const b=e.target.closest('[data-ag]');if(!b)return;toggleAllergy(b.dataset.ag);renderOb();});
@@ -1640,7 +1716,7 @@ $('#copyList').addEventListener('click',()=>{
 });
 
 /* Tabs */
-const TABS=['kochen','snacks','einkauf','naehrwerte','kueche'];
+const TABS=['kochen','gerichte','snacks','einkauf','naehrwerte','kueche'];
 function showTab(t){
  if(!TABS.includes(t))t='kochen';
  for(const x of TABS){$('#tab-'+x).setAttribute('aria-selected',String(x===t));$('#p-'+x).hidden=x!==t;}
