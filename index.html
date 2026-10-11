@@ -210,6 +210,31 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Tagesplan */
+.goalrow{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
+.numin{display:grid;gap:4px}
+.numin .box{display:flex;align-items:center;gap:8px}
+.numin input{width:120px;border:1.5px solid var(--line);background:var(--surface);border-radius:11px;padding:9px 11px;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.numin input:focus{border-color:var(--green);outline:none}
+.progress{height:12px;border-radius:7px;background:var(--surface-2);overflow:hidden;position:relative}
+.progress span{display:block;height:100%;border-radius:7px;background:var(--green)}
+.progress.over span{background:var(--beet)}.progress.under span{background:var(--squash)}
+.planhead{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
+.planhead .big{font-family:var(--f-display);font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
+.macros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.macros div{background:var(--surface-2);border-radius:10px;padding:8px 10px;display:grid;gap:1px}
+.macros b{font-size:17px;font-variant-numeric:tabular-nums}
+.macros span{font-size:12px;color:var(--ink-2)}
+@media (max-width:520px){.macros{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.meals{display:grid;gap:12px}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
+.meal-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
+.meal h3{font-size:19px}
+.meal .facts{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.meal .facts b{color:var(--ink)}
+.meal details>summary{cursor:pointer;font-weight:600;font-size:14px;color:var(--green)}
+.meal details[open]>summary{margin-bottom:10px}
+.meal details .card{box-shadow:none}
 /* Einkauf: ankreuzen statt abhaken */
 .havebtn{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap}
 .havebtn[aria-pressed="true"]{background:var(--surface-2);color:var(--green);border-color:var(--green)}
@@ -307,6 +332,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
   <nav class="tabs" role="tablist" aria-label="Bereiche">
     <button role="tab" id="tab-kochen" aria-controls="p-kochen" aria-selected="true">Kochen</button>
     <button role="tab" id="tab-gerichte" aria-controls="p-gerichte" aria-selected="false">Gerichte</button>
+    <button role="tab" id="tab-tagesplan" aria-controls="p-tagesplan" aria-selected="false">Tagesplan</button>
     <button role="tab" id="tab-snacks" aria-controls="p-snacks" aria-selected="false">Snacks</button>
     <button role="tab" id="tab-saftbar" aria-controls="p-saftbar" aria-selected="false">Saftbar</button>
     <button role="tab" id="tab-einkauf" aria-controls="p-einkauf" aria-selected="false">Einkauf</button>
@@ -423,6 +449,29 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
       </div>
       <div class="grid" id="allGrid"></div>
       <div class="more" id="gMoreWrap" hidden><button class="ghost" id="gMore" type="button">Alle anzeigen</button></div>
+    </div>
+  </section>
+
+  <!-- TAGESPLAN -->
+  <section id="p-tagesplan" role="tabpanel" aria-labelledby="tab-tagesplan" hidden>
+    <div style="display:grid;gap:18px">
+      <div style="display:grid;gap:6px;max-width:68ch">
+        <h2 style="font-size:24px">Tagesplan nach Kalorienziel</h2>
+        <p class="muted">Gib dein Tagesziel ein. Wir stellen Frühstück, Mittag- und Abendessen und auf Wunsch einen Snack so zusammen, dass du nah an dein Ziel kommst. Gerichte mit viel Eiweiß bevorzugen wir leicht.</p>
+      </div>
+      <div class="panel" style="display:grid;gap:14px">
+        <div class="goalrow">
+          <div class="numin"><label class="lbl" for="kGoal">Mein Kalorienziel</label><div class="box"><input type="number" id="kGoal" min="1200" max="4500" step="50" inputmode="numeric"><span class="muted">kcal pro Tag</span></div></div>
+          <div class="numin"><label class="lbl" for="kEaten">Heute schon gegessen</label><div class="box"><input type="number" id="kEaten" min="0" max="6000" step="50" value="0" inputmode="numeric"><span class="muted">kcal</span></div></div>
+        </div>
+        <div style="display:grid;gap:6px"><span class="lbl">Schnellauswahl</span><div class="quick" id="kPresets"></div></div>
+        <div style="display:grid;gap:6px"><span class="lbl">Noch zu planen</span><div class="quick" id="kSlots"></div></div>
+        <label class="check"><input type="checkbox" id="kDev"><span>Nur Gerichte, die ich mit meinen Geräten kochen kann</span></label>
+        <div class="rowline"><button class="btn" type="button" id="kNew">Neuen Plan vorschlagen</button><span class="small muted" id="kMsg"></span></div>
+        <p class="small muted">Das Ziel ist ein Richtwert. Der Energiebedarf hängt von Alter, Größe, Gewicht und Bewegung ab und liegt bei Erwachsenen meist grob zwischen 1.700 und 3.000 kcal. Sehr niedrige Ziele (unter etwa 1.500 kcal) lieber mit ärztlicher oder ernährungsfachlicher Begleitung angehen.</p>
+      </div>
+      <div class="panel" id="planSum" style="display:grid;gap:12px"></div>
+      <div class="meals" id="planMeals"></div>
     </div>
   </section>
 
@@ -1449,7 +1498,7 @@ const DRINKS=[
 {id:'rotebetesaft',n:'Rote-Bete-Apfel-Saft',k:'Saft',why:'Erdig-süß und knallig pink.',m:[['blend',10,'Im Mixer pürieren und durch ein feines Sieb drücken. Mit Entsafter geht es schneller.']],
  ing:[['1 Knolle','Rote Bete (roh)','rote_bete'],['2','Äpfel','apfel'],['½','Zitrone (Saft)','zitrone'],['1 Scheibe','Ingwer','ingwer'],['150 ml','Wasser']],gq:[150,300,30,5,0],por:2,
  s:['Rote Bete schälen (Handschuhe!), Äpfel entkernen.','Alles mit Wasser fein pürieren und absieben.'],tip:'Rote Bete färbt stark – Brett und Hände gleich abspülen.'},
-{id:'goldenmilk',n:'Goldene Milch',k:'Warm',rep:'Kakao mit Zucker',why:'Wärmend mit Kurkuma und Ingwer, gesüßt höchstens mit einer Dattel.',m:[['herd',5],['mikrowelle',3]],
+{id:'goldenmilk',n:'Goldene Milch',vn:'Goldene Milch (pflanzlich)',k:'Warm',rep:'Kakao mit Zucker',why:'Wärmend mit Kurkuma und Ingwer, gesüßt höchstens mit einer Dattel.',m:[['herd',5],['mikrowelle',3]],
  ing:[['300 ml','Milch','milch'],['1 TL','Kurkuma','kurkuma'],['½ TL','Zimt','zimt'],['1 Scheibe','Ingwer','ingwer'],['1 Prise','schwarzer Pfeffer'],['1, optional','Dattel','datteln']],gq:[300,3,1,5,0,8],por:1,
  s:['Milch mit Gewürzen und Ingwer erhitzen, nicht kochen lassen.','Optional eine fein gehackte Dattel mitziehen lassen, dann mit dem Stabmixer aufschäumen oder durch ein Sieb gießen.'],tip:'Der Pfeffer hilft, die Inhaltsstoffe der Kurkuma besser aufzunehmen.'},
 {id:'chai',n:'Chai-Latte ohne Zucker',k:'Warm',rep:'Chai mit Sirup',why:'Würzig wie im Café, ohne den süßen Sirup.',m:[['herd',8]],
@@ -1490,11 +1539,15 @@ const S={
  persons:store.get('persons',1),
  allergies:(store.get('allergies',[])||[]).filter(k=>['laktose','milch','ei','gluten','nuesse','erdnuss','soja','sesam','sellerie','senf'].includes(k)),
  buy:store.get('buy',[])||[],
+ kcalGoal:Math.min(4500,Math.max(1200,+store.get('kcalGoal',2000)||2000)),
+ planSlots:store.get('planSlots',['fruehstueck','mittag','abend','snack']),
+ planDev:store.get('planDev',true),
+ plan:store.get('plan',null),
  maxTime:0, meal:'all', showAll:false
 };
 if(!Array.isArray(S.chips)){S.chips=['zucchini','paprika','kichererbsen','zwiebel','feta'].map(id=>({label:I[id].n,id}));S.example=true;}
 const vegan=()=>S.diet==='vegan';
-const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('buy',S.buy);store.set('allergies',S.allergies);};
+const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('buy',S.buy);store.set('kcalGoal',S.kcalGoal);store.set('planSlots',S.planSlots);store.set('planDev',S.planDev);store.set('plan',S.plan);store.set('allergies',S.allergies);};
 
 /* ============ HILFEN ============ */
 const $=(s,el=document)=>el.querySelector(s);
@@ -1584,7 +1637,7 @@ function nutStrip(n,cap){
  const p=n.per;const eP=p.p*4,eC=p.c*4,eF=p.f*9,s=(eP+eC+eF)||1;const w=x=>(x/s*100).toFixed(1);const pc=x=>Math.round(x/s*100);
  return `<div class="nutbox"><div class="nut"><span><b>${fmt(p.kcal)}</b>kcal</span><span><b>${fmt(p.p)} g</b>Eiweiß</span><span><b>${fmt(p.c)} g</b>Kohlenh.</span><span><b>${fmt(p.f)} g</b>Fett</span></div>
   <div class="macro" role="img" aria-label="Energieanteile: ${pc(eP)} % Eiweiß, ${pc(eC)} % Kohlenhydrate, ${pc(eF)} % Fett"><span class="mp" style="width:${w(eP)}%"></span><span class="mc" style="width:${w(eC)}%"></span><span class="mf" style="width:${w(eF)}%"></span></div>
-  <p class="nut-cap"><span>${esc(cap||'pro Portion')}</span><span><i class="lg mp"></i>Eiweiß ${pc(eP)} %</span><span><i class="lg mc"></i>KH ${pc(eC)} %</span><span><i class="lg mf"></i>Fett ${pc(eF)} %</span></p></div>`;
+  <p class="nut-cap"><span>${esc(cap||'pro Portion')}${S.kcalGoal?` · ${Math.round(p.kcal/S.kcalGoal*100)} % deines Tagesziels`:''}</span><span><i class="lg mp"></i>Eiweiß ${pc(eP)} %</span><span><i class="lg mc"></i>KH ${pc(eC)} %</span><span><i class="lg mf"></i>Fett ${pc(eF)} %</span></p></div>`;
 }
 function nutDetails(n){
  const p=n.per;
@@ -1812,7 +1865,7 @@ function snackHTML(sn,ai){
  }).join('');
  return `<article class="card${method?'':' dim'}">
   <div class="swap">${sn.k?`<span class="kindtag">${esc(sn.k)}</span>`:''}${sn.rep?`<span>statt</span><s>${esc(sn.rep)}</s>`:''}</div>
-  <div class="card-h"><h3>${esc(vz(sn.n))}</h3><span class="time">${clock}${esc(time)} Min.</span></div>
+  <div class="card-h"><h3>${esc(sn.vn&&(vegan()||has('milch'))?sn.vn:vz(sn.n))}</h3><span class="time">${clock}${esc(time)} Min.</span></div>
   <p class="desc">${esc(vz(sn.why))}</p>
   <div class="meta">${ai?'<span class="tag-ai">von Claude</span>':''}${sn.k&&nut?`<span class="tag-sugar">${fmt(nut.per.z)} g Zucker</span>`:''}${devs?`<span>${esc(devs)}</span>`:''}${missDev.length?`<span class="warn">Braucht: ${esc(missDev.join(', '))}</span>`:''}</div>
   ${nut?nutStrip(nut,'pro Portion'+(nut.pl?' ('+nut.pl+')':'')):''}
@@ -1820,6 +1873,88 @@ function snackHTML(sn,ai){
   <details><summary>Zubereitung</summary>${method&&method.note?`<p class="note">${esc(method.note)}</p>`:''}<ol>${sn.s.map(s=>`<li>${esc(vz(s))}</li>`).join('')}</ol>${sn.tip?`<p class="small muted" style="margin-top:8px">Tipp: ${esc(vz(sn.tip))}</p>`:''}</details>
   ${nut?nutDetails(nut):''}
  </article>`;
+}
+/* ============ TAGESPLAN ============ */
+const SLOTS=[['fruehstueck','Frühstück','b'],['mittag','Mittagessen','m'],['abend','Abendessen','m'],['snack','Snack oder Getränk','s']];
+const snackName=sn=>sn.vn&&(vegan()||has('milch'))?sn.vn:vz(sn.n);
+const portionTxt=f=>f===1?'1 Portion':(f===1.5?'1½':f===2?'2':String(f))+' Portionen';
+function snackNut(sn){const sq=sn.gq?[sn.gq,sn.por,sn.pl]:SQTY[sn.id];if(!sq)return null;const n=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:sq[0][i],label:name})).filter(x=>x.id),sq[1]);n.pl=sq[2];return n;}
+function planPool(){
+ const owned=new Set(S.devices);const {user,have}=haveSets();
+ const rv=RECIPES.filter(recipeAllowed).map(r=>recipeView(r,owned,user,have)).filter(v=>!S.planDev||v.method);
+ const opt=v=>({type:'r',id:v.r.id,kcal:v.nut.per.kcal,p:v.nut.per.p,name:v.name});
+ const sn=[...SNACKS,...DRINKS].filter(x=>!x.ing.some(l=>l[2]&&excluded(l[2]))&&(!S.planDev||pickMethod(x.m,owned)))
+   .map(x=>{const n=snackNut(x);return n?{type:'s',id:x.id,kcal:n.per.kcal,p:n.per.p,name:snackName(x)}:null;}).filter(Boolean);
+ return {b:rv.filter(v=>(v.r.meal||'main')==='breakfast').map(opt),m:rv.filter(v=>(v.r.meal||'main')==='main').map(opt),s:sn};
+}
+const FACT={b:[1,1.5,2],m:[1,1.5],s:[1,2]};
+const pickR=a=>a[Math.floor(Math.random()*a.length)];
+function planTarget(){const e=Math.max(0,+$('#kEaten').value||0);return S.kcalGoal-e;}
+function scorePlan(items,T){const tot=items.reduce((a,x)=>a+x.kcal*x.f,0),p=items.reduce((a,x)=>a+x.p*x.f,0);const W={b:.25,m:.35,s:.1},kd=x=>SLOTS.find(s=>s[0]===x.slot)[2],wt=items.reduce((a,x)=>a+W[kd(x)],0);return Math.abs(tot-T)-0.5*p+items.reduce((a,x)=>a+(x.f>1?18:0)+Math.max(0,x.kcal*x.f-1.6*W[kd(x)]/wt*T)*0.6,0);}
+function makePlan(){
+ const T=planTarget();const pool=planPool();const slots=SLOTS.filter(s=>S.planSlots.includes(s[0]));
+ if(T<=0||!slots.length){S.plan=[];save();return;}
+ if(slots.some(s=>!pool[s[2]].length)){S.plan=null;save();return;}
+ const best=[];
+ for(let k=0;k<900;k++){
+   const used=new Set();const items=[];
+   for(const [sid,,kind] of slots){let o;let tries=0;do{o=pickR(pool[kind]);tries++;}while(used.has(o.id)&&tries<8);used.add(o.id);items.push({slot:sid,...o,f:pickR(FACT[kind])});}
+   best.push([scorePlan(items,T),items]);
+   if(best.length>12){best.sort((a,b)=>a[0]-b[0]);best.length=8;}
+ }
+ best.sort((a,b)=>a[0]-b[0]);
+ S.plan=pickR(best.slice(0,3))[1].map(x=>({slot:x.slot,type:x.type,id:x.id,f:x.f}));save();
+}
+function swapMeal(slot){
+ const T=planTarget();const pool=planPool();const kind=SLOTS.find(s=>s[0]===slot)[2];
+ const others=planItems().filter(x=>x.slot!==slot);const cur=planItems().find(x=>x.slot===slot);
+ const cand=[];for(const o of pool[kind]){if(cur&&o.id===cur.id)continue;if(others.some(x=>x.id===o.id))continue;for(const f of FACT[kind]){const it={slot,...o,f};cand.push([scorePlan([...others,it],T),it]);}}
+ cand.sort((a,b)=>a[0]-b[0]);if(!cand.length)return;
+ const pick=pickR(cand.slice(0,4))[1];
+ S.plan=S.plan.map(x=>x.slot===slot?{slot,type:pick.type,id:pick.id,f:pick.f}:x);save();renderPlan();
+}
+function planItems(){
+ if(!Array.isArray(S.plan))return [];
+ const owned=new Set(S.devices);const {user,have}=haveSets();
+ return S.plan.map(x=>{
+   if(x.type==='r'){const r=RECIPES.find(r=>r.id===x.id);if(!r||!recipeAllowed(r))return null;const v=recipeView(r,owned,user,have);if(S.planDev&&!v.method)return null;return {...x,v,kcal:v.nut.per.kcal,p:v.nut.per.p,nut:v.nut,name:v.name};}
+   const sn=[...SNACKS,...DRINKS].find(d=>d.id===x.id);if(!sn||sn.ing.some(l=>l[2]&&excluded(l[2])))return null;const n=snackNut(sn);return {...x,sn,kcal:n.per.kcal,p:n.per.p,nut:n,name:snackName(sn)};
+ });
+}
+function renderPlan(){
+ $('#kGoal').value=S.kcalGoal;$('#kDev').checked=S.planDev;
+ $('#kPresets').innerHTML=[1600,1800,2000,2200,2500,2800].map(k=>`<button type="button" data-k="${k}" aria-pressed="${S.kcalGoal===k}">${k.toLocaleString('de-DE')} kcal</button>`).join('');
+ $('#kSlots').innerHTML=SLOTS.map(([id,l])=>`<button type="button" data-slot="${id}" aria-pressed="${S.planSlots.includes(id)}">${l}</button>`).join('');
+ const T=planTarget();const eaten=S.kcalGoal-T;
+ let items=planItems();
+ const wanted=SLOTS.filter(s=>S.planSlots.includes(s[0])).map(s=>s[0]);
+ if(T>0&&wanted.length&&(items.some(x=>!x)||items.length!==wanted.length||items.some((x,i)=>x.slot!==wanted[i]))){makePlan();items=planItems();}
+ items=items.filter(Boolean);
+ const sum=$('#planSum'),meals=$('#planMeals');
+ if(T<=0){
+   const pool=planPool();const light=[...pool.s].sort((a,b)=>a.kcal-b.kcal).slice(0,3);
+   sum.innerHTML=`<div class="planhead"><span class="big">Ziel erreicht</span><span class="muted">Du hast heute schon ${eaten.toLocaleString('de-DE')} kcal gegessen${eaten>S.kcalGoal?` – ${(eaten-S.kcalGoal).toLocaleString('de-DE')} kcal mehr als dein Ziel von ${S.kcalGoal.toLocaleString('de-DE')} kcal. Kein Problem, ein Tag zählt nicht allein.`:` – das ist dein Ziel von ${S.kcalGoal.toLocaleString('de-DE')} kcal.`}</span></div><p class="small">Falls du noch Hunger hast, sind das leichte Optionen: ${light.map(x=>`<b>${esc(x.name)}</b> (${fmt(x.kcal)} kcal)`).join(', ')}.</p>`;
+   meals.innerHTML='';return;
+ }
+ if(!wanted.length){sum.innerHTML='<p class="muted">Wähle oben mindestens eine Mahlzeit aus.</p>';meals.innerHTML='';return;}
+ if(!items.length){sum.innerHTML='<p class="muted">Mit deinen Einstellungen gibt es für mindestens eine Mahlzeit kein passendes Gericht. Lockere den Geräte-Filter oder deine Auswahl.</p>';meals.innerHTML='';return;}
+ const tot={kcal:0,p:0,c:0,z:0,f:0,b:0};for(const it of items)for(const k in tot)tot[k]+=it.nut.per[k]*it.f;
+ const diff=tot.kcal-T,pct=Math.min(100,tot.kcal/T*100);
+ if(Math.abs(diff)>T*0.08&&!renderPlan.again){renderPlan.again=true;makePlan();renderPlan();renderPlan.again=false;return;}
+ const cls=Math.abs(diff)<=T*0.05?'':diff>0?'over':'under';
+ const e=tot.p*4+tot.c*4+tot.f*9||1;
+ sum.innerHTML=`<div class="planhead"><span><span class="big">${Math.round(tot.kcal).toLocaleString('de-DE')}</span> <span class="muted">von ${T.toLocaleString('de-DE')} kcal${eaten>0?' (Rest nach '+eaten.toLocaleString('de-DE')+' kcal)':''}</span></span>
+   <span class="${cls?'warn':'small muted'}">${Math.abs(diff)<=T*0.05?'Passt – weniger als 5 % Abweichung':diff>0?`${Math.round(diff)} kcal über dem Ziel`:`${Math.round(-diff)} kcal unter dem Ziel`}</span></div>
+  <div class="progress ${cls}" role="img" aria-label="${Math.round(tot.kcal/T*100)} % des Ziels geplant"><span style="width:${pct.toFixed(1)}%"></span></div>
+  <div class="macros"><div><b>${fmt(tot.p)} g</b><span>Eiweiß · ${Math.round(tot.p*4/e*100)} % der Energie</span></div><div><b>${fmt(tot.c)} g</b><span>Kohlenhydrate · ${Math.round(tot.c*4/e*100)} %</span></div><div><b>${fmt(tot.f)} g</b><span>Fett · ${Math.round(tot.f*9/e*100)} %</span></div><div><b>${fmt(tot.b)} g</b><span>Ballaststoffe · Richtwert 30 g</span></div></div>`;
+ meals.innerHTML=items.map(it=>{
+   const label=SLOTS.find(s=>s[0]===it.slot)[1];
+   const port=it.type==='s'&&it.nut.pl?`${it.f>1?it.f+' × ':''}${it.nut.pl}`:portionTxt(it.f);
+   const card=it.type==='r'?cardHTML(it.v,{list:true}):snackHTML(it.sn,false);
+   return `<article class="meal"><div class="meal-top"><div style="display:grid;gap:2px;min-width:0"><span class="lbl">${esc(label)}</span><h3>${esc(it.name)}</h3></div><button type="button" class="ghost" data-swap="${it.slot}">Anderes Gericht</button></div>
+    <p class="facts"><b>${esc(port)}</b> · <b>${fmt(it.kcal*it.f)} kcal</b> · ${fmt(it.p*it.f)} g Eiweiß · ${fmt(it.nut.per.c*it.f)} g KH · ${fmt(it.nut.per.f*it.f)} g Fett</p>
+    <details><summary>Rezept anzeigen</summary>${card}</details></article>`;
+ }).join('');
 }
 let drinkKind='Alle';
 function renderDrinks(){
@@ -1931,7 +2066,7 @@ function renderNutTab(){
 $('#nwSearch').addEventListener('input',e=>{NW.q=e.target.value;renderNutTab();});
 $('#nwCats').addEventListener('click',e=>{const b=e.target.closest('button[data-c]');if(!b)return;NW.cat=b.dataset.c;renderNutTab();});
 $('#nwTable').addEventListener('click',e=>{const b=e.target.closest('.sortbtn');if(!b)return;const k=b.dataset.k;if(NW.sort===k)NW.dir*=-1;else{NW.sort=k;NW.dir=k==='name'?1:-1;}renderNutTab();});
-function renderAll(){renderDiet();renderCook();renderSnacks();renderStock();renderKitchen();renderNutTab();}
+function renderAll(){renderDiet();renderCook();renderSnacks();renderStock();renderKitchen();renderNutTab();renderPlan();}
 
 /* ============ EVENTS ============ */
 $('#addForm').addEventListener('submit',e=>{e.preventDefault();const i=$('#ingInput');addIngredients(i.value);i.value='';i.focus();});
@@ -1964,6 +2099,14 @@ $('#stockSum').addEventListener('click',e=>{const b=e.target.closest('[data-act]
  save();renderStock();});
 $('#p-einkauf').addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;const f=b.dataset.f;S.fresh=S.fresh.includes(f)?S.fresh.filter(x=>x!==f):[...S.fresh,f];b.setAttribute('aria-pressed',String(S.fresh.includes(f)));save();renderList();});
 $('#basketBtn').addEventListener('click',suggestBasket);
+const setGoal=k=>{k=Math.round(+k||0);if(!k)return;const c=Math.min(4500,Math.max(1200,k));if(c!==k)toast('Bitte ein Ziel zwischen 1.200 und 4.500 kcal wählen.');S.kcalGoal=c;makePlan();save();renderAll();};
+$('#kGoal').addEventListener('change',e=>setGoal(e.target.value));
+$('#kEaten').addEventListener('change',()=>{makePlan();renderPlan();});
+$('#kPresets').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)setGoal(b.dataset.k);});
+$('#kSlots').addEventListener('click',e=>{const b=e.target.closest('[data-slot]');if(!b)return;const id=b.dataset.slot;S.planSlots=S.planSlots.includes(id)?S.planSlots.filter(x=>x!==id):SLOTS.map(s=>s[0]).filter(x=>x===id||S.planSlots.includes(x));makePlan();renderPlan();});
+$('#kDev').addEventListener('change',e=>{S.planDev=e.target.checked;makePlan();renderPlan();});
+$('#kNew').addEventListener('click',()=>{makePlan();renderPlan();});
+$('#planMeals').addEventListener('click',e=>{const b=e.target.closest('[data-swap]');if(b)swapMeal(b.dataset.swap);});
 $('#drinkKinds').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(!b)return;drinkKind=b.dataset.k;renderDrinks();});
 $('#clearFresh').addEventListener('click',()=>{S.fresh=[];save();renderStock();});
 $('#pMinus').addEventListener('click',()=>{S.persons=Math.max(1,S.persons-1);save();renderStock();});
@@ -1979,10 +2122,11 @@ $('#copyList').addEventListener('click',()=>{
 });
 
 /* Tabs */
-const TABS=['kochen','gerichte','snacks','saftbar','einkauf','naehrwerte','kueche'];
+const TABS=['kochen','gerichte','tagesplan','snacks','saftbar','einkauf','naehrwerte','kueche'];
 function showTab(t){
  if(!TABS.includes(t))t='kochen';
  for(const x of TABS){$('#tab-'+x).setAttribute('aria-selected',String(x===t));$('#p-'+x).hidden=x!==t;}
+ if(t==='tagesplan')renderPlan();
 }
 document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(!b)return;const t=b.id.slice(4);showTab(t);try{history.replaceState(null,'','#'+t)}catch(err){}});
 document.querySelector('.tabs').addEventListener('keydown',e=>{if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;const cur=TABS.findIndex(t=>$('#tab-'+t).getAttribute('aria-selected')==='true');const n=TABS[(cur+(e.key==='ArrowRight'?1:TABS.length-1))%TABS.length];showTab(n);$('#tab-'+n).focus();});
