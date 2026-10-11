@@ -210,6 +210,20 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Eigene Rezepte */
+.ownfields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px}
+.fld{display:grid;gap:4px;min-width:0}
+.fld input,.fld select,.fld textarea,.irow input,.mangrid input{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 11px;font:inherit;color:inherit;min-width:0;width:100%}
+.fld input:focus,.fld select:focus,.fld textarea:focus,.irow input:focus,.mangrid input:focus{border-color:var(--green);outline:none}
+.oings{display:grid;gap:8px}
+.irow{display:grid;grid-template-columns:minmax(0,1fr) 92px 38px;gap:6px;align-items:center}
+.ihint{grid-column:1/-1;font-size:12px;color:var(--ink-2);margin-top:-3px}
+.ihint.ok{color:var(--green)}
+.ix{border:0;background:var(--surface-2);border-radius:8px;height:38px;font-size:16px;color:var(--ink-2)}
+.ix:hover{background:var(--beet-soft);color:var(--beet)}
+.mangrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:8px}
+.mangrid label{display:grid;gap:3px;font-size:12px;color:var(--ink-2)}
+.progress.mini{height:6px;margin-top:5px}
 /* Tagesplan */
 .goalrow{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:flex-end}
 .numin{display:grid;gap:4px}
@@ -221,11 +235,10 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .progress.over span{background:var(--beet)}.progress.under span{background:var(--squash)}
 .planhead{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between}
 .planhead .big{font-family:var(--f-display);font-size:32px;font-weight:800;font-variant-numeric:tabular-nums}
-.macros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.macros{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
 .macros div{background:var(--surface-2);border-radius:10px;padding:8px 10px;display:grid;gap:1px}
 .macros b{font-size:17px;font-variant-numeric:tabular-nums}
 .macros span{font-size:12px;color:var(--ink-2)}
-@media (max-width:520px){.macros{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .meals{display:grid;gap:12px}
 .meal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
 .meal-top{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline;justify-content:space-between}
@@ -419,7 +432,8 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
         </div>
       </div>
       <div class="panel gctrls">
-        <input id="gSearch" class="search" placeholder="Gericht oder Zutat suchen, z. B. Curry oder Linsen" aria-label="Gericht oder Zutat suchen">
+        <div class="rowline"><input id="gSearch" class="search" placeholder="Gericht oder Zutat suchen, z. B. Curry oder Linsen" aria-label="Gericht oder Zutat suchen"><button class="btn" type="button" id="ownNew">+ Eigenes Rezept</button></div>
+        <div class="grp"><span class="lbl">Küche</span><div class="quick" id="gCu"></div></div>
         <div class="row">
           <div class="grp"><span class="lbl">Mahlzeit</span>
             <div class="seg" role="group" aria-label="Mahlzeit" id="gMeal">
@@ -465,6 +479,10 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
           <div class="numin"><label class="lbl" for="kEaten">Heute schon gegessen</label><div class="box"><input type="number" id="kEaten" min="0" max="6000" step="50" value="0" inputmode="numeric"><span class="muted">kcal</span></div></div>
         </div>
         <div style="display:grid;gap:6px"><span class="lbl">Schnellauswahl</span><div class="quick" id="kPresets"></div></div>
+        <details class="browse" id="ngoalBox"><summary>Eigene Nährwertziele (optional)</summary>
+          <p class="small muted" style="margin-bottom:10px">Leer lassen = kein festes Ziel. Der Plan versucht, deine Ziele zu treffen; bei Zucker gilt der Wert als Obergrenze.</p>
+          <div class="goalrow" id="ngoalInputs"></div>
+        </details>
         <div style="display:grid;gap:6px"><span class="lbl">Noch zu planen</span><div class="quick" id="kSlots"></div></div>
         <label class="check"><input type="checkbox" id="kDev"><span>Nur Gerichte, die ich mit meinen Geräten kochen kann</span></label>
         <div class="rowline"><button class="btn" type="button" id="kNew">Neuen Plan vorschlagen</button><span class="small muted" id="kMsg"></span></div>
@@ -639,6 +657,35 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
     </div>
   </div>
 </div>
+<div class="overlay" id="ownSheet" hidden role="dialog" aria-modal="true" aria-labelledby="ownTitle">
+  <form class="sheet" id="ownForm" style="max-width:820px" novalidate>
+    <div class="rowline"><h2 id="ownTitle">Eigenes Rezept</h2><button type="button" class="ghost" id="ownClose">Schließen</button></div>
+    <div class="ownfields">
+      <label class="fld" style="grid-column:1/-1"><span class="lbl">Name</span><input id="oName" maxlength="80" placeholder="z. B. Omas Gemüsesuppe"></label>
+      <label class="fld" style="grid-column:1/-1"><span class="lbl">Kurzbeschreibung (optional)</span><input id="oDesc" maxlength="140" placeholder="Ein Satz zum Gericht"></label>
+      <label class="fld"><span class="lbl">Mahlzeit</span><select id="oMeal"><option value="main">Hauptgericht</option><option value="breakfast">Frühstück</option></select></label>
+      <label class="fld"><span class="lbl">Portionen</span><input id="oPor" type="number" min="1" max="12" value="2" inputmode="numeric"></label>
+      <label class="fld"><span class="lbl">Zeit in Minuten</span><input id="oTime" type="number" min="1" max="600" value="30" inputmode="numeric"></label>
+    </div>
+    <div style="display:grid;gap:8px">
+      <span class="lbl">Zutaten – Menge für das ganze Rezept in Gramm (Flüssigkeiten in ml)</span>
+      <div id="oIngs" class="oings"></div>
+      <div><button type="button" class="ghost" id="oAddIng">+ Zutat</button></div>
+    </div>
+    <label class="fld"><span class="lbl">Zubereitung – ein Schritt pro Zeile</span><textarea id="oSteps" rows="5" placeholder="Zwiebel würfeln und anschwitzen.&#10;Gemüse zugeben …"></textarea></label>
+    <div style="display:grid;gap:10px">
+      <span class="lbl">Nährwerte pro Portion</span>
+      <div class="seg" role="group" aria-label="Nährwerte" id="oMode"><button type="button" data-m="auto" aria-pressed="true">Automatisch berechnen</button><button type="button" data-m="manual" aria-pressed="false">Selbst eintragen</button></div>
+      <div id="oAuto" style="display:grid;gap:8px"></div>
+      <div id="oManual" hidden style="display:grid;gap:8px">
+        <div class="mangrid" id="oManGrid"></div>
+        <div><button type="button" class="linkbtn" id="oFill">Berechneten Vorschlag übernehmen</button></div>
+      </div>
+    </div>
+    <p class="warn" id="oErr" hidden></p>
+    <div class="sheet-foot"><button type="button" class="linkbtn" id="oDel" hidden>Rezept löschen</button><button type="submit" class="btn">Rezept speichern</button></div>
+  </form>
+</div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script>
@@ -697,6 +744,9 @@ const ING_RAW=[
 ['rosenkohl','Rosenkohl','g','','rosenkohl'],
 ['pastinake','Pastinaken','g','','pastinake,pastinaken,petersilienwurzel'],
 ['radieschen','Radieschen','g','','radieschen,rettich'],
+['zitronengras','Zitronengras','g','','zitronengras,lemongrass'],
+['sprossen','Sojasprossen','g','','sojasprossen,mungbohnensprossen,sprossen,bohnensprossen'],
+['pak_choi','Pak Choi','g','','pak choi,pak-choi,pakchoi,bok choy,senfkohl'],
 ['banane','Bananen','o','','banane,bananen'],
 ['apfel','Äpfel','o','','apfel,äpfel'],
 ['birne','Birnen','o','','birne,birnen'],
@@ -734,6 +784,10 @@ const ING_RAW=[
 ['lasagne','Lasagneplatten','k','','lasagne,lasagneplatten,lasagneblätter'],
 ['hirse','Hirse','k','','hirse,hirseflocken'],
 ['polenta','Polenta','k','','polenta,maisgrieß'],
+['reispapier','Reispapier','k','','reispapier,reisblätter'],
+['filoteig','Filoteig','k','','filoteig,yufka,yufkateig'],
+['spaetzle','Spätzle','k','Vegane Spätzle','spätzle,spaetzle,knöpfle'],
+['maultaschen','Maultaschen','k','Vegane Maultaschen','maultaschen,gemüsemaultaschen'],
 ['feta','Feta','m','Vegan-Feta','feta,schafskäse,hirtenkäse,veganer feta,vegan feta,vegan-feta'],
 ['mozzarella','Mozzarella','m','Vegan-Mozzarella','mozzarella,burrata,vegane mozzarella'],
 ['parmesan','Parmesan','m','Hefeflocken','parmesan,grana padano,pecorino,hartkäse'],
@@ -744,6 +798,7 @@ const ING_RAW=[
 ['sahne','Sahne','m','Hafer-Cuisine','sahne,kochsahne,schmand,saure sahne,crème fraîche,creme fraiche,hafer-cuisine,hafersahne,sojasahne'],
 ['butter','Butter','m','Pflanzenmargarine','butter,margarine'],
 ['halloumi','Halloumi','m','Räuchertofu','halloumi,grillkäse'],
+['ricotta','Ricotta','m','Tofu-Ricotta','ricotta'],
 ['dosentomaten','Dosentomaten','v','','dosentomaten,stückige tomaten,gehackte tomaten,passierte tomaten,passata,tomatendose,pizzatomaten'],
 ['tomatenmark','Tomatenmark','v','','tomatenmark'],
 ['kokosmilch','Kokosmilch','v','','kokosmilch,kokosnussmilch'],
@@ -780,7 +835,8 @@ const ING_RAW=[
 ['petersilie','Petersilie','r','','petersilie'],
 ['koriander','Koriander','r','','koriander'],
 ['schnittlauch','Schnittlauch','r','','schnittlauch,kresse'],
-['minze','Minze','r','','minze']
+['minze','Minze','r','','minze'],
+['dill','Dill','r','','dill']
 ];
 const I={},ALIAS={};
 for(const [id,n,c,vg,al] of ING_RAW){I[id]={id,n,c,vg};ALIAS[n.toLowerCase()]=id;for(const a of al.split(','))ALIAS[a.trim()]=id;}
@@ -1134,7 +1190,216 @@ const RECIPES=[
  core:['zucchini|kartoffel|karotte','mehl|haferflocken|kichererbsenmehl','eier'],opt:['joghurt','fruehlingszwiebel','feta','schnittlauch','knoblauch'],swaps:{eier:'leinsamen'},
  m:[['herd',25]],
  s:['2 Zucchini grob raspeln, salzen, 10 Min. ziehen lassen und kräftig ausdrücken.',['Mit 1 Ei, 4 EL Mehl, Frühlingszwiebeln, Salz und Pfeffer verrühren.','Mit 1 EL gemahlenen Leinsamen, 5 EL Kichererbsenmehl, Frühlingszwiebeln, Salz und Pfeffer verrühren.'],'Kleine Puffer in Öl pro Seite 3–4 Min. goldbraun braten.','Dazu Joghurt mit Kräutern und Knoblauch servieren.'],
- p:[['Kräuterjoghurt','frisch und eiweißreich','joghurt'],['Feta im Teig','würzig','feta'],['Salat dazu','mehr Grün','salat'],['Ungesüßtes Apfelmus','süß-salzig, typisch deutsch']]}
+ p:[['Kräuterjoghurt','frisch und eiweißreich','joghurt'],['Feta im Teig','würzig','feta'],['Salat dazu','mehr Grün','salat'],['Ungesüßtes Apfelmus','süß-salzig, typisch deutsch']]},
+
+/* ---- Griechische Küche ---- */
+{id:'gigantes',cu:'Griechisch',n:'Gigantes plaki',d:'Weiße Riesenbohnen in Tomaten-Dill-Sauce aus dem Ofen.',
+ core:['weisse_bohnen','dosentomaten|tomate','zwiebel','dill|petersilie'],opt:['karotte','knoblauch','oregano','feta','sellerie'],
+ m:[['ofen+herd',45,'Bei 180 °C ca. 30 Min. schmoren.'],['herd',35]],
+ s:['Zwiebel, Karotte und Knoblauch würfeln und in 2 EL Olivenöl 5 Min. anschwitzen.','1 Dose Tomaten, Oregano, Salz und Pfeffer zugeben, 2 Dosen abgetropfte weiße Bohnen unterheben.','In einer Form im Ofen schmoren (oder zugedeckt im Topf köcheln), bis die Sauce dick ist.','Mit viel Dill bestreuen.'],
+ p:[['Feta-Bröckchen','salzig','feta'],['Vollkornbrot','zum Tunken','brot'],['Zitronenabrieb','Frische','zitrone'],['Oliven','würzig','oliven']]},
+{id:'fasolada',cu:'Griechisch',n:'Fasolada',d:'Griechische Bohnensuppe – das Nationalgericht.',
+ core:['weisse_bohnen','karotte','sellerie|lauch','dosentomaten|tomatenmark','zwiebel'],opt:['knoblauch','petersilie','zitrone','oregano'],
+ m:[['herd',35],['schnellkochtopf',20]],
+ s:['Zwiebel, Karotten und Sellerie würfeln und in 2 EL Olivenöl anschwitzen.','1 EL Tomatenmark oder ½ Dose Tomaten zugeben und mit 800 ml Wasser auffüllen.','2 Dosen Bohnen zugeben und 20 Min. köcheln.','Mit Zitronensaft, Salz, Pfeffer und Petersilie abschmecken und mit einem Schuss Olivenöl servieren.'],
+ p:[['Feta','salzig','feta'],['Oliven','typisch dazu','oliven'],['Vollkornbrot','sättigt','brot'],['Chiliflocken','Wärme','chili']]},
+{id:'fakes',cu:'Griechisch',n:'Fakes',d:'Griechische Linsensuppe mit Lorbeer und einem Schuss Essig.',
+ core:['linsen','zwiebel','karotte','dosentomaten|tomatenmark'],opt:['knoblauch','essig','oregano','sellerie'],
+ m:[['herd',40],['schnellkochtopf',20]],
+ s:['Zwiebel, Karotte und Knoblauch würfeln und in Olivenöl anschwitzen.','150 g braune Linsen, ½ Dose Tomaten, 1 Lorbeerblatt und 800 ml Wasser zugeben.','30 Min. köcheln, bis die Linsen weich sind.','Mit 1 EL Essig, Salz, Pfeffer und Oregano abschmecken.'],
+ p:[['Feta','klassisch','feta'],['Oliven','würzig','oliven'],['Rote Zwiebel roh','Schärfe','zwiebel'],['Vollkornbrot','dazu','brot']]},
+{id:'revithia',cu:'Griechisch',n:'Revithia',d:'Kichererbsen-Eintopf mit Zitrone und Rosmarin.',
+ core:['kichererbsen','zwiebel','zitrone'],opt:['knoblauch','karotte','spinat','oregano'],
+ m:[['herd',25],['ofen',50,'Traditionell im Tontopf bei 180 °C ca. 45 Min.']],
+ s:['Zwiebel in Ringen in 2 EL Olivenöl weich dünsten.','2 Dosen Kichererbsen mit etwas Flüssigkeit, 300 ml Wasser und Oregano oder Rosmarin zugeben und 15 Min. köcheln.','Ein Viertel der Kichererbsen zerdrücken, damit es sämig wird, Spinat unterheben.','Mit dem Saft einer Zitrone, Salz und Pfeffer abschmecken.'],
+ p:[['Feta','salzig','feta'],['Petersilie','frisch','petersilie'],['Vollkornbrot','zum Tunken','brot'],['Chiliflocken','Wärme','chili']]},
+{id:'spanakorizo',cu:'Griechisch',n:'Spanakorizo',d:'Spinatreis mit Dill, Zitrone und Frühlingszwiebeln.',
+ core:['spinat','reis','fruehlingszwiebel|zwiebel','dill|petersilie','zitrone'],opt:['feta','knoblauch','minze'],
+ m:[['herd',30]],
+ s:['Frühlingszwiebeln in Olivenöl anschwitzen, 120 g Reis kurz mitrösten.','400 ml Wasser oder Brühe zugeben und 15 Min. köcheln.','500 g Spinat (auch TK) und Dill unterrühren und weitere 5 Min. garen.','Mit Zitronensaft, Salz und Pfeffer abschmecken.'],
+ p:[['Feta','salzig-cremig','feta'],['Klecks Joghurt','frisch','joghurt'],['Minze','Frische','minze'],['Zitronenabrieb','aromatisch','zitrone']]},
+{id:'spanakopita',cu:'Griechisch',n:'Spanakopita',d:'Knuspriger Spinat-Feta-Strudel aus Filoteig.',vd:'Knuspriger Spinatstrudel mit Vegan-Feta.',
+ core:['filoteig','spinat','feta','fruehlingszwiebel|zwiebel'],opt:['dill','eier','knoblauch','petersilie'],
+ m:[['ofen+herd',50,'Bei 190 °C ca. 30–35 Min. goldbraun backen.']],
+ s:['Frühlingszwiebeln anschwitzen, 600 g Spinat zufallen lassen und gut ausdrücken.',['Mit zerbröseltem Feta, Dill, Pfeffer und optional 1 Ei mischen.','Mit zerbröseltem Vegan-Feta, Dill und Pfeffer mischen.'],'6 Lagen Filoteig mit Olivenöl bepinseln, Füllung darauf geben und mit weiteren 4 Lagen abdecken.','In Stücke einschneiden und goldbraun backen.'],
+ p:[['Salat dazu','leichter Ausgleich','salat'],['Joghurt-Dip','frisch','joghurt'],['Sesam obendrauf','nussig','kerne'],['Zitronenspalte','Frische','zitrone']]},
+{id:'briam',cu:'Griechisch',n:'Briam',d:'Griechisches Ofengemüse mit Kartoffeln und Tomate.',
+ core:['kartoffel','zucchini|aubergine','tomate|dosentomaten','zwiebel'],opt:['paprika','knoblauch','oregano','petersilie','feta'],
+ m:[['ofen',60,'Bei 190 °C ca. 50 Min., zwischendurch wenden.'],['airfryer',35,'Bei 180 °C in zwei Durchgängen.']],
+ s:['Kartoffeln, Zucchini, Aubergine und Zwiebel in Scheiben schneiden.','Mit gewürfelten Tomaten, Knoblauch, Oregano, 3 EL Olivenöl, Salz und Pfeffer mischen.','Zugedeckt 30 Min., dann offen 20 Min. backen, bis alles weich und leicht gebräunt ist.'],
+ p:[['Feta','klassisch dazu','feta'],['Petersilie','frisch','petersilie'],['Vollkornbrot','für die Sauce','brot'],['Kichererbsen mitbacken','mehr Eiweiß','kichererbsen']]},
+{id:'gemista',cu:'Griechisch',n:'Gemista',d:'Tomaten und Paprika, gefüllt mit Kräuterreis.',
+ core:['tomate','paprika','reis','zwiebel','petersilie|minze|dill'],opt:['knoblauch','zucchini','kartoffel','feta'],
+ m:[['ofen+herd',70,'Bei 180 °C ca. 50 Min. backen.']],
+ s:['4 große Tomaten und 2 Paprika aushöhlen, das Tomateninnere hacken.','Zwiebel anschwitzen, 120 g Reis, Tomatenfruchtfleisch und Kräuter zugeben und 5 Min. köcheln.','Gemüse füllen, Deckel aufsetzen und Kartoffelspalten dazwischen legen.','Mit Olivenöl beträufeln und backen, bis der Reis gar ist.'],
+ p:[['Feta','salzig','feta'],['Joghurt','kühl dazu','joghurt'],['Pinienkerne in die Füllung','Crunch','kerne'],['Oliven','würzig','oliven']]},
+{id:'imambayildi',cu:'Griechisch',n:'Imam Bayildi',d:'Geschmorte Auberginen mit Zwiebel-Tomaten-Füllung.',
+ core:['aubergine','zwiebel','tomate|dosentomaten','knoblauch'],opt:['petersilie','paprika','feta','zimt'],
+ m:[['ofen+herd',55,'Bei 180 °C ca. 35 Min. schmoren.']],
+ s:['2 Auberginen längs halbieren, das Fruchtfleisch einschneiden, salzen und in Olivenöl anbraten.','Zwiebeln in Streifen mit Knoblauch weich schmoren, Tomaten und eine Prise Zimt zugeben.','Auberginen mit der Füllung belegen und im Ofen weich schmoren.','Mit Petersilie servieren – schmeckt auch lauwarm.'],
+ p:[['Feta','salzig','feta'],['Joghurt-Dip','frisch','joghurt'],['Bulgur dazu','sättigt','bulgur'],['Petersilie','frisch','petersilie']]},
+{id:'kolokithokeftedes',cu:'Griechisch',n:'Kolokithokeftedes',d:'Zucchini-Feta-Bällchen aus dem Ofen mit Tzatziki.',
+ core:['zucchini','feta','mehl|haferflocken','dill|minze'],opt:['eier','fruehlingszwiebel','joghurt','gurke'],
+ m:[['ofen',35,'Bei 200 °C ca. 20–25 Min., einmal wenden.'],['airfryer',25,'Bei 190 °C ca. 12–15 Min.']],
+ s:['500 g Zucchini raspeln, salzen, 10 Min. ziehen lassen und kräftig ausdrücken.',['Mit 150 g Feta, 60 g Mehl, Kräutern, Frühlingszwiebel und 1 Ei verkneten.','Mit 150 g Vegan-Feta, 80 g Mehl, Kräutern und Frühlingszwiebel verkneten.'],'Kleine Bällchen formen, mit Öl bepinseln und goldbraun backen.','Mit Tzatziki aus Joghurt, Gurke und Knoblauch servieren.'],
+ p:[['Tzatziki','frisch und eiweißreich','joghurt'],['Tomatensalat','dazu','tomate'],['Zitronenspalte','Frische','zitrone'],['Oliven','würzig','oliven']]},
+
+/* ---- Deutsche Küche ---- */
+{id:'linsenspaetzle',cu:'Deutsch',n:'Linsen mit Spätzle',d:'Der schwäbische Klassiker – mit Räuchertofu statt Saitenwürstle.',
+ core:['linsen','spaetzle','karotte|sellerie|lauch','zwiebel'],opt:['raeuchertofu','essig','senf','tomatenmark','bruehe'],
+ m:[['herd',40]],
+ s:['Zwiebel, Karotte und Sellerie würfeln, in Öl anschwitzen und 1 EL Tomatenmark mitrösten.','150 g Linsen und 600 ml Brühe zugeben und 30 Min. köcheln.','Mit 2 EL Essig, Senf, Salz und Pfeffer kräftig abschmecken.','Spätzle erhitzen, Räuchertofu in Scheiben anbraten und alles zusammen servieren.'],
+ p:[['Gebratener Räuchertofu','rauchig wie Saitenwürstle','raeuchertofu'],['Schuss Essig','typisch schwäbisch','essig'],['Petersilie','frisch','petersilie'],['Senf','würzig','senf']]},
+{id:'maultaschen',cu:'Deutsch',n:'Gemüse-Maultaschen in Brühe',d:'Schnell und schwäbisch: Maultaschen mit viel Gemüse in klarer Brühe.',
+ core:['maultaschen','bruehe','karotte|lauch|sellerie'],opt:['schnittlauch','petersilie','fruehlingszwiebel','spinat'],
+ m:[['herd',15]],
+ s:['800 ml Brühe aufkochen und Karotte und Lauch in feinen Streifen 5 Min. darin garen.','6–8 Maultaschen zugeben und bei kleiner Hitze 8 Min. ziehen lassen (nicht kochen).','Mit Schnittlauch bestreuen.'],
+ p:[['Schnittlauch','frisch','schnittlauch'],['Geröstete Zwiebeln','herzhaft','zwiebel'],['Kartoffelsalat dazu','klassisch','kartoffel'],['Spinat in die Brühe','mehr Grün','spinat']]},
+{id:'kartoffelsalat',cu:'Deutsch',n:'Schwäbischer Kartoffelsalat',d:'Mit Brühe, Essig und Zwiebeln statt Mayo – lauwarm am besten.',
+ core:['kartoffel','zwiebel','bruehe','essig'],opt:['senf','gurke','schnittlauch','raeuchertofu','salat'],
+ m:[['herd',35],['dampfgarer',40]],
+ s:['800 g festkochende Kartoffeln mit Schale garen, pellen und noch warm in Scheiben schneiden.','1 Zwiebel fein würfeln und mit 200 ml heißer Brühe, 3 EL Essig, 1 TL Senf, Salz und Pfeffer aufkochen.','Über die Kartoffeln gießen, 3 EL Öl zugeben und vorsichtig mischen.','Mindestens 20 Min. ziehen lassen und mit Schnittlauch servieren.'],
+ p:[['Gurkenscheiben','frisch','gurke'],['Feldsalat dazu','mehr Grün','salat'],['Gebratener Räuchertofu','Eiweiß','raeuchertofu'],['Schnittlauch','klassisch','schnittlauch']]},
+{id:'kartoffelsuppe',cu:'Deutsch',n:'Kartoffelsuppe mit Räuchertofu',d:'Deftig und cremig, mit Majoran.',
+ core:['kartoffel','karotte|sellerie|lauch','zwiebel','bruehe'],opt:['raeuchertofu','schnittlauch','petersilie','sahne'],
+ m:[['herd',35]],
+ s:['Zwiebel, 600 g Kartoffeln, Karotte und Lauch würfeln und in Öl anschwitzen.','Mit 900 ml Brühe auffüllen, mit Majoran würzen und 20 Min. köcheln.','Die Hälfte zerdrücken oder pürieren, damit die Suppe sämig wird.','Räuchertofu würfeln, knusprig braten und darübergeben.'],
+ p:[['Knuspriger Räuchertofu','rauchig','raeuchertofu'],['Schnittlauch','frisch','schnittlauch'],['Schuss Sahne','cremig','sahne'],['Vollkornbrot','dazu','brot']]},
+{id:'gruenkohlkartoffeln',cu:'Deutsch',n:'Grünkohl mit Kartoffeln',d:'Norddeutscher Wintereintopf, ganz pflanzlich.',
+ core:['gruenkohl','kartoffel','zwiebel','bruehe'],opt:['raeuchertofu','senf','paprikapulver','vegan_hack'],
+ m:[['herd',45]],
+ s:['500 g Grünkohl waschen, von den Stielen zupfen und hacken.','Zwiebel in Öl anschwitzen, Grünkohl zugeben, mit 300 ml Brühe ablöschen und 30 Min. schmoren.','Kartoffeln garen und Räuchertofu in Würfeln anbraten.','Grünkohl mit Senf, Salz und Pfeffer abschmecken und mit Kartoffeln und Tofu servieren.'],
+ p:[['Räuchertofu','rauchig wie Kohlwurst','raeuchertofu'],['Senf','scharf dazu','senf'],['Geröstete Kerne','Crunch','kerne'],['Prise Paprikapulver','Wärme','paprikapulver']]},
+{id:'himmelerde',cu:'Deutsch',n:'Himmel un Ääd',d:'Rheinisch: Kartoffelstampf mit Apfel und Röstzwiebeln.',
+ core:['kartoffel','apfel','zwiebel'],opt:['milch','butter','raeuchertofu','schnittlauch','salat'],
+ m:[['herd',30]],
+ s:['700 g Kartoffeln schälen und in Salzwasser 20 Min. kochen.','2 Äpfel in Spalten mit wenig Wasser 5 Min. weich dünsten.','2 Zwiebeln in Ringen in Öl langsam goldbraun braten.','Kartoffeln mit etwas Milch stampfen, Äpfel unterheben und mit den Zwiebeln servieren.'],
+ p:[['Gebratener Räuchertofu','herzhaft','raeuchertofu'],['Feldsalat dazu','Frische','salat'],['Schnittlauch','grün','schnittlauch'],['Prise Muskat','klassisch']]},
+{id:'kohlrouladen',cu:'Deutsch',n:'Kohlrouladen mit Linsenfüllung',d:'Weißkohlblätter mit herzhafter Linsen-Reis-Füllung in Tomatensauce.',
+ core:['weisskohl','linsen|rote_linsen','reis','zwiebel','dosentomaten'],opt:['karotte','paprikapulver','senf','petersilie'],
+ m:[['herd',60],['ofen+herd',70,'Bei 180 °C ca. 40 Min. schmoren.']],
+ s:['8 große Kohlblätter 3 Min. blanchieren und die dicke Mittelrippe flach schneiden.','100 g Linsen und 60 g Reis garen und mit gebratener Zwiebel, Senf, Paprikapulver, Salz und Pfeffer mischen.','Füllung auf die Blätter geben, Seiten einschlagen, aufrollen und rundum anbraten.','Mit 1 Dose Tomaten und etwas Wasser 30 Min. zugedeckt schmoren.'],
+ p:[['Klecks Joghurt','frisch','joghurt'],['Kartoffeln dazu','klassisch','kartoffel'],['Petersilie','frisch','petersilie'],['Kümmel','typisch zu Kohl']]},
+{id:'flammkuchen',cu:'Deutsch',n:'Schneller Flammkuchen',d:'Auf Vollkorn-Wraps mit Lauch und Räuchertofu – in 15 Minuten.',
+ core:['tortilla','quark|joghurt','zwiebel|lauch'],opt:['raeuchertofu','schnittlauch','salat','pilze'],
+ m:[['ofen',15,'Bei 220 °C ca. 8–10 Min. knusprig backen.'],['airfryer',12,'Wraps einzeln bei 190 °C ca. 5 Min.']],
+ s:['250 g Quark mit 2 EL Wasser, Salz und Pfeffer glatt rühren.','4 Wraps dünn damit bestreichen.','Mit Zwiebelringen, Lauchstreifen und Räuchertofu-Würfeln belegen.','Knusprig backen und mit Schnittlauch bestreuen.'],
+ p:[['Räuchertofu','rauchig wie Speck','raeuchertofu'],['Feldsalat obendrauf','frisch','salat'],['Champignons','herzhaft','pilze'],['Schnittlauch','klassisch','schnittlauch']]},
+{id:'rahmspinat',cu:'Deutsch',n:'Rahmspinat mit Kartoffeln und Spiegelei',vn:'Rahmspinat mit Kartoffeln und Tofu',d:'Kindheitsessen in leicht: Spinat mit Milch statt Sahne.',vd:'Cremiger Spinat, Kartoffeln und knusprig gebratener Tofu.',
+ core:['spinat','kartoffel','eier','milch|sahne'],opt:['zwiebel','knoblauch','mehl'],swaps:{eier:'tofu'},
+ m:[['herd',30]],
+ s:['600 g Kartoffeln kochen.','Zwiebel und Knoblauch anschwitzen, 1 EL Mehl kurz mitrösten, mit 200 ml Milch ablöschen und 2 Min. köcheln.','500 g Spinat (auch TK) zugeben und mit Muskat, Salz und Pfeffer abschmecken.',['4 Spiegeleier braten und mit Kartoffeln und Spinat servieren.','200 g Tofu in Scheiben mit etwas Kurkuma und Kala Namak knusprig braten und dazu servieren.']],
+ p:[['Prise Muskat','klassisch'],['Kala Namak','schmeckt nach Ei'],['Zitronenabrieb','frisch','zitrone'],['Geröstete Kerne','Crunch','kerne']]},
+{id:'erbseneintopf',cu:'Deutsch',n:'Erbseneintopf',d:'Mit TK-Erbsen, Kartoffeln und Majoran – schnell gemacht.',
+ core:['erbsen','kartoffel','karotte|lauch|sellerie','bruehe'],opt:['zwiebel','raeuchertofu','petersilie','minze'],
+ m:[['herd',30]],
+ s:['Zwiebel, 300 g Kartoffeln und 2 Karotten würfeln und in Öl anschwitzen.','800 ml Brühe zugeben und 15 Min. köcheln.','450 g TK-Erbsen zugeben, 5 Min. garen und ein Drittel zerdrücken.','Mit Majoran, Salz und Pfeffer abschmecken und Räuchertofu-Würfel darübergeben.'],
+ p:[['Räuchertofu','rauchig','raeuchertofu'],['Frische Minze','überraschend gut','minze'],['Petersilie','grün','petersilie'],['Vollkornbrot','dazu','brot']]},
+
+/* ---- Italienische Küche ---- */
+{id:'pastafagioli',cu:'Italienisch',n:'Pasta e fagioli',d:'Dicke Bohnen-Nudel-Suppe aus Großmutters Küche.',
+ core:['nudeln','weisse_bohnen|kidneybohnen','dosentomaten','zwiebel','bruehe'],opt:['karotte','sellerie','knoblauch','parmesan','oregano'],
+ m:[['herd',30]],
+ s:['Zwiebel, Karotte, Sellerie und Knoblauch würfeln und in Olivenöl anschwitzen.','½ Dose Tomaten, 1 Dose Bohnen und 700 ml Brühe zugeben und 10 Min. köcheln.','Ein Drittel der Bohnen zerdrücken, 120 g kleine Nudeln zugeben und darin gar kochen.','Mit Rosmarin, Pfeffer und Parmesan servieren.'],
+ p:[['Parmesan','würzig','parmesan'],['Rosmarin','aromatisch'],['Chiliflocken','Wärme','chili'],['Olivenöl zum Beträufeln','fruchtig']]},
+{id:'risotto',cu:'Italienisch',n:'Pilzrisotto',d:'Cremig gerührt, mit Champignons und Parmesan.',
+ core:['reis','pilze','zwiebel','bruehe'],opt:['parmesan','knoblauch','spinat','petersilie','butter'],
+ m:[['herd',35],['schnellkochtopf',20]],
+ s:['Zwiebel fein würfeln, in Olivenöl glasig dünsten und 150 g Risottoreis kurz mitrösten.','Nach und nach 600 ml heiße Brühe angießen und unter Rühren ca. 18 Min. garen.','300 g Pilze separat kräftig anbraten.','Pilze und Parmesan unterziehen und 2 Min. ruhen lassen.'],
+ p:[['Parmesan','würzig','parmesan'],['Petersilie','frisch','petersilie'],['Spinat unterheben','mehr Grün','spinat'],['Zitronenabrieb','Frische','zitrone']]},
+{id:'caponata',cu:'Italienisch',n:'Caponata',d:'Sizilianisches süß-saures Auberginengemüse.',
+ core:['aubergine','tomate|dosentomaten','zwiebel','sellerie|paprika','essig'],opt:['oliven','basilikum','kerne','knoblauch'],
+ m:[['herd',35]],
+ s:['2 Auberginen würfeln, in Olivenöl goldbraun braten und herausnehmen.','Zwiebel und Sellerie anbraten, Tomaten zugeben und 10 Min. köcheln.','Auberginen, Oliven, Kapern und 2 EL Essig zugeben und weitere 10 Min. schmoren.','Mit Basilikum servieren – warm oder kalt.'],
+ p:[['Geröstete Pinienkerne','Crunch','kerne'],['Basilikum','frisch','basilikum'],['Vollkornbrot','dazu','brot'],['Kapern','salzig-würzig']]},
+{id:'norma',cu:'Italienisch',n:'Pasta alla Norma',d:'Mit gebratener Aubergine, Tomate und Ricotta.',
+ core:['nudeln','aubergine','dosentomaten','knoblauch'],opt:['ricotta','basilikum','parmesan','chili'],
+ m:[['herd',30]],
+ s:['1 Aubergine würfeln und in Olivenöl goldbraun braten.','Knoblauch kurz mitbraten, 1 Dose Tomaten zugeben und 10 Min. köcheln.','200 g Vollkornnudeln kochen und mit der Sauce mischen.','Mit Ricotta-Klecksen und Basilikum servieren.'],
+ p:[['Ricotta','cremig','ricotta'],['Basilikum','frisch','basilikum'],['Chiliflocken','Schärfe','chili'],['Parmesan','würzig','parmesan']]},
+{id:'parmigiana',cu:'Italienisch',n:'Melanzane alla parmigiana',d:'Auberginen-Auflauf – leicht, weil gebacken statt frittiert.',
+ core:['aubergine','dosentomaten','mozzarella','parmesan|kaese'],opt:['basilikum','knoblauch','zwiebel'],
+ m:[['ofen+herd',60,'Auberginen bei 220 °C ca. 15 Min. vorbacken, dann bei 200 °C ca. 25 Min. überbacken.']],
+ s:['2 Auberginen in Scheiben schneiden, mit wenig Öl bepinseln und im Ofen vorbacken.','Tomatensauce aus Zwiebel, Knoblauch und 1 Dose Tomaten 10 Min. köcheln.','Abwechselnd Sauce, Auberginen, Mozzarella und Basilikum schichten und mit Parmesan abschließen.','Goldbraun überbacken.'],
+ p:[['Basilikum','frisch','basilikum'],['Salat dazu','leicht','salat'],['Vollkornbrot','für die Sauce','brot'],['Rucola','pfeffrig','rucola']]},
+{id:'panzanella',cu:'Italienisch',n:'Panzanella',d:'Toskanischer Brotsalat mit Tomaten – ideal für altes Brot.',
+ core:['brot','tomate','gurke','zwiebel','basilikum'],opt:['paprika','essig','oliven','kichererbsen','mozzarella'],
+ m:[['',15]],
+ s:['200 g altes Vollkornbrot würfeln (nach Wunsch in der Pfanne rösten).','Tomaten, Gurke und rote Zwiebel grob schneiden.','Mit 3 EL Olivenöl, 2 EL Essig, Salz und Pfeffer mischen und 10 Min. ziehen lassen, damit das Brot den Saft aufnimmt.','Mit Basilikum servieren.'],
+ p:[['Kichererbsen','macht satt','kichererbsen'],['Mozzarella','cremig','mozzarella'],['Oliven','würzig','oliven'],['Kapern','salzig']]},
+{id:'ribollita',cu:'Italienisch',n:'Ribollita',d:'Toskanische Bohnen-Grünkohl-Suppe mit Brot.',
+ core:['weisse_bohnen','gruenkohl|weisskohl|spinat','dosentomaten','karotte','brot'],opt:['zwiebel','sellerie','knoblauch','parmesan'],
+ m:[['herd',40]],
+ s:['Zwiebel, Karotte, Sellerie und Knoblauch würfeln und in Olivenöl anschwitzen.','½ Dose Tomaten, 1 Dose Bohnen, 300 g Grünkohl und 800 ml Wasser zugeben und 25 Min. köcheln.','Altes Brot in Stücken unterrühren, bis die Suppe dick wird.','Mit Olivenöl, Pfeffer und Parmesan servieren.'],
+ p:[['Parmesan','würzig','parmesan'],['Chiliflocken','Wärme','chili'],['Rosmarin','aromatisch'],['Olivenöl','fruchtig']]},
+{id:'pastaceci',cu:'Italienisch',n:'Pasta e ceci',d:'Römische Nudeln mit Kichererbsen und Rosmarin.',
+ core:['nudeln','kichererbsen','knoblauch','tomatenmark|dosentomaten'],opt:['zwiebel','parmesan','chili','spinat'],
+ m:[['herd',25]],
+ s:['Knoblauch und Rosmarin in Olivenöl anschwitzen und 1 EL Tomatenmark kurz mitrösten.','1 Dose Kichererbsen und 600 ml Wasser zugeben, 10 Min. köcheln und die Hälfte zerdrücken.','150 g kleine Nudeln darin gar kochen, bis es cremig ist.','Mit Pfeffer, Chili und Olivenöl servieren.'],
+ p:[['Parmesan','würzig','parmesan'],['Chiliflocken','Schärfe','chili'],['Spinat unterheben','Grün','spinat'],['Zitronenabrieb','Frische','zitrone']]},
+{id:'pizza',cu:'Italienisch',n:'Vollkorn-Gemüsepizza',d:'Schneller Quark-Öl-Teig ohne Hefe, belegt mit viel Gemüse.',
+ core:['mehl','quark','dosentomaten','mozzarella','paprika|zucchini|pilze|spinat|zwiebel'],opt:['backpulver','oregano','rucola','oliven','basilikum'],
+ m:[['ofen',35,'Bei 220 °C ca. 15–18 Min. backen.']],
+ s:['200 g Vollkornmehl, 1 TL Backpulver, 150 g Quark, 4 EL Öl, 4 EL Wasser und ½ TL Salz verkneten.','Dünn auf einem Blech ausrollen und mit gewürzten, pürierten Tomaten bestreichen.','Mit Gemüse und Mozzarella belegen und Oregano darüber streuen.','Backen und mit Rucola servieren.'],
+ p:[['Rucola','pfeffrig','rucola'],['Oliven','würzig','oliven'],['Basilikum','frisch','basilikum'],['Chili','Schärfe','chili']]},
+{id:'cannelloni',cu:'Italienisch',n:'Spinat-Ricotta-Cannelloni',d:'Gefüllte Nudelrollen in Tomatensauce.',
+ core:['lasagne','spinat','ricotta','dosentomaten'],opt:['parmesan','mozzarella','knoblauch','zwiebel'],
+ m:[['ofen+herd',55,'Bei 190 °C ca. 30 Min. backen.']],
+ s:['400 g Spinat (auch TK) mit Knoblauch dünsten, ausdrücken und mit 250 g Ricotta, Muskat, Salz und Pfeffer mischen.','12 Lasagneplatten kurz vorkochen, Füllung darauf geben und aufrollen.','In eine Form mit Tomatensauce legen, mit restlicher Sauce bedecken und mit Parmesan bestreuen.','Backen, bis die Nudeln weich sind.'],
+ p:[['Basilikum','frisch','basilikum'],['Salat dazu','leicht','salat'],['Mozzarella obendrauf','extra cremig','mozzarella'],['Chiliflocken','Wärme','chili']]},
+
+/* ---- Vietnamesische Küche ---- */
+{id:'sommerrollen',cu:'Vietnamesisch',n:'Sommerrollen mit Tofu',d:'Gỏi cuốn: frische Reispapierrollen mit Kräutern und Erdnussdip.',
+ core:['reispapier','tofu|raeuchertofu','salat|gurke|karotte','minze|koriander|basilikum'],opt:['reisnudeln','erdnussmus','limette','sprossen','sojasauce'],
+ m:[['',25],['herd',30,'Tofu vorher in der Pfanne anbraten.']],
+ s:['Tofu in Streifen schneiden (nach Wunsch anbraten), Gemüse in feine Stifte schneiden.','Reispapier kurz in warmes Wasser tauchen und auf ein feuchtes Brett legen.','Salat, Gemüse, Tofu, Reisnudeln und Kräuter darauflegen, Seiten einschlagen und fest aufrollen.','Für den Dip 2 EL Erdnussmus, 1 EL Sojasauce, Limettensaft und warmes Wasser glatt rühren.'],
+ p:[['Erdnussdip','cremig','erdnussmus'],['Chili','Schärfe','chili'],['Gehackte Erdnüsse','Crunch','nuesse'],['Mango-Streifen','fruchtig','mango']]},
+{id:'pho',cu:'Vietnamesisch',n:'Phở chay',d:'Vegetarische Nudelsuppe mit Sternanis, Ingwer und frischen Kräutern.',
+ core:['reisnudeln','bruehe','tofu|pilze','ingwer','zwiebel'],opt:['sprossen','koriander','basilikum','limette','chili','pak_choi','sojasauce'],
+ m:[['herd',40]],
+ s:['Zwiebel und Ingwer halbieren und in einer Pfanne ohne Fett dunkel rösten.','Mit 1,2 l Brühe, 2 Sternanis, 1 Zimtstange und 2 EL Sojasauce 25 Min. sanft köcheln und abseihen.','Reisnudeln nach Packung garen, Tofu und Pilze in Scheiben 3 Min. in der Brühe ziehen lassen.','Nudeln in Schalen geben, heiße Brühe darüber und mit Sprossen, Kräutern, Limette und Chili servieren.'],
+ p:[['Thai-Basilikum','typisch','basilikum'],['Limettenspalten','Säure','limette'],['Sojasprossen','Crunch','sprossen'],['Frische Chili','Schärfe','chili']]},
+{id:'bunchay',cu:'Vietnamesisch',n:'Bún chay',d:'Lauwarmer Reisnudelsalat mit Zitronengras-Tofu und Kräutern.',
+ core:['reisnudeln','tofu','salat|gurke|karotte','minze|koriander|basilikum','limette'],opt:['zitronengras','nuesse','sprossen','chili','sojasauce','fruehlingszwiebel'],
+ m:[['herd',30]],
+ s:['Tofu würfeln, mit fein gehacktem Zitronengras, Knoblauch und Sojasauce marinieren und knusprig braten.','Reisnudeln garen und kalt abschrecken.','Salat, Gurke und Karotte in Streifen schneiden.','Dressing aus Limettensaft, 2 EL Sojasauce, Wasser, Chili und Knoblauch rühren. Alles in Schalen anrichten und mit Kräutern und Erdnüssen toppen.'],
+ p:[['Geröstete Erdnüsse','Crunch','nuesse'],['Frühlingszwiebel-Öl','aromatisch','fruehlingszwiebel'],['Sojasprossen','frisch','sprossen'],['Chili','Schärfe','chili']]},
+{id:'banhmi',cu:'Vietnamesisch',n:'Bánh mì mit Zitronengras-Tofu',d:'Knuspriges Baguette mit Tofu, eingelegtem Gemüse und Koriander.',
+ core:['brot','tofu|raeuchertofu','karotte|gurke|radieschen','koriander'],opt:['zitronengras','chili','sojasauce','essig','gurke'],
+ m:[['herd',25]],
+ s:['Karotte und Radieschen in feine Stifte schneiden und mit 3 EL Essig, etwas Wasser und Salz 15 Min. ziehen lassen.','Tofu in Scheiben mit Zitronengras und Sojasauce marinieren und knusprig braten.','Baguette aufschneiden und kurz aufbacken.','Mit Tofu, eingelegtem Gemüse, Gurke, Koriander und Chili füllen.'],
+ p:[['Chili','Schärfe','chili'],['Gurkenscheiben','frisch','gurke'],['Joghurt-Chili-Creme','cremig','joghurt'],['Frühlingszwiebel','Biss','fruehlingszwiebel']]},
+{id:'cari',cu:'Vietnamesisch',n:'Cà ri chay',d:'Vietnamesisches Kokos-Curry mit Süßkartoffel und Zitronengras.',
+ core:['kokosmilch','suesskartoffel|kartoffel','tofu|pilze','zitronengras|currypaste|curry','zwiebel'],opt:['karotte','ingwer','knoblauch','basilikum','reis','brot'],
+ m:[['herd',35]],
+ s:['Zwiebel, Knoblauch, Ingwer und Zitronengras anschwitzen und 1 EL Currypulver kurz mitrösten.','Süßkartoffel und Karotte würfeln und mit 250 ml Kokosmilch und 350 ml Wasser 20 Min. köcheln.','Tofuwürfel (gern vorher angebraten) zugeben und 5 Min. ziehen lassen.','Mit Sojasauce, Limette und Thai-Basilikum abschmecken. Dazu Reis oder Baguette.'],
+ p:[['Thai-Basilikum','aromatisch','basilikum'],['Limette','Frische','limette'],['Chili','Schärfe','chili'],['Baguette zum Tunken','typisch vietnamesisch','brot']]},
+{id:'tofuxaot',cu:'Vietnamesisch',n:'Zitronengras-Chili-Tofu',d:'Đậu hũ xả ớt: knuspriger Tofu mit Zitronengras und Chili.',
+ core:['tofu','zitronengras|ingwer','chili','reis'],opt:['knoblauch','fruehlingszwiebel','sojasauce','gurke','koriander'],
+ m:[['herd',25]],
+ s:['Reis garen.','400 g Tofu würfeln, trocken tupfen und in Öl rundum knusprig braten.','2 Stangen Zitronengras fein hacken und mit Knoblauch und Chili kurz mitbraten.','Mit 2 EL Sojasauce ablöschen und mit Frühlingszwiebeln und Gurkenscheiben servieren.'],
+ p:[['Gurkenscheiben','kühlt','gurke'],['Koriander','frisch','koriander'],['Limette','Säure','limette'],['Geröstete Erdnüsse','Crunch','nuesse']]},
+{id:'pakchoi',cu:'Vietnamesisch',n:'Pak Choi mit Pilzen und Knoblauch',d:'Schnelles Wokgemüse mit Reis.',
+ core:['pak_choi|brokkoli|spinat','pilze','knoblauch','sojasauce','reis'],opt:['ingwer','tofu','chili','kerne'],
+ m:[['herd',20]],
+ s:['Reis garen.','Pilze in Scheiben in Öl scharf anbraten und viel gehackten Knoblauch zugeben.','Pak Choi halbieren, zugeben und 3 Min. braten, bis er zusammenfällt.','Mit Sojasauce und einem Schuss Wasser ablöschen.'],
+ p:[['Gebratener Tofu','Eiweiß','tofu'],['Sesam','nussig','kerne'],['Chili','Schärfe','chili'],['Ingwer','Frische','ingwer']]},
+{id:'glasnudelsalat',cu:'Vietnamesisch',n:'Glasnudelsalat',d:'Miến trộn: Glasnudeln mit Gemüse, Kräutern und Limetten-Dressing.',
+ core:['reisnudeln','karotte|gurke|paprika','pilze|tofu','koriander|minze','limette'],opt:['sprossen','nuesse','chili','fruehlingszwiebel','sojasauce'],
+ m:[['herd',20]],
+ s:['150 g Glasnudeln garen, abschrecken und etwas kürzer schneiden.','Pilze oder Tofu in Streifen anbraten.','Gemüse in feine Streifen schneiden.','Alles mit einem Dressing aus Limettensaft, Sojasauce, Knoblauch und Chili mischen und mit Kräutern und Erdnüssen toppen.'],
+ p:[['Geröstete Erdnüsse','Crunch','nuesse'],['Sojasprossen','frisch','sprossen'],['Chili','Schärfe','chili'],['Frühlingszwiebel','Biss','fruehlingszwiebel']]},
+{id:'tomatentofusuppe',cu:'Vietnamesisch',n:'Tomaten-Tofu-Suppe',d:'Canh đậu hũ cà chua: leichte, säuerliche Suppe in 15 Minuten.',
+ core:['tomate','tofu','fruehlingszwiebel|zwiebel','bruehe'],opt:['koriander','pak_choi','sojasauce','pilze'],
+ m:[['herd',15]],
+ s:['3 Tomaten in Spalten mit Frühlingszwiebeln in Öl 3 Min. anbraten.','800 ml Brühe zugeben und aufkochen.','200 g Tofu (gern Seidentofu) in Würfeln zugeben und 5 Min. ziehen lassen.','Mit Sojasauce und Pfeffer abschmecken und mit Koriander servieren.'],
+ p:[['Koriander','frisch','koriander'],['Pak Choi','mehr Grün','pak_choi'],['Reis dazu','sättigt','reis'],['Chili','Schärfe','chili']]},
+{id:'bunxao',cu:'Vietnamesisch',n:'Bún xào chay',d:'Gebratene Reisnudeln mit Gemüse und Tofu.',
+ core:['reisnudeln','tofu','karotte|paprika|pak_choi|weisskohl|brokkoli','sojasauce'],opt:['sprossen','fruehlingszwiebel','knoblauch','chili','nuesse','koriander'],
+ m:[['herd',25]],
+ s:['150 g Reisnudeln einweichen oder kurz garen und abtropfen lassen.','Tofu würfeln, knusprig braten und herausnehmen.','Gemüse und Knoblauch im Wok 4 Min. pfannenrühren.','Nudeln, Tofu und 3 EL Sojasauce zugeben, 2 Min. braten und mit Sprossen und Kräutern servieren.'],
+ p:[['Sojasprossen','Crunch','sprossen'],['Geröstete Erdnüsse','nussig','nuesse'],['Koriander','frisch','koriander'],['Limette','Säure','limette']]}
+
 ];
 
 /* Snacks: ing = [Menge, Zutat, id] */
@@ -1262,13 +1527,15 @@ curry:[14,25,3,14,33],kreuzkuemmel:[18,34,2,22,11],paprikapulver:[14,19,10,13,35
 kurkuma:[10,44,3,3,21],
 basilikum:[3.2,1,0.3,0.6,1.6],petersilie:[3,1.5,0.9,0.8,3.3],koriander:[2.1,0.9,0.9,0.5,2.8],schnittlauch:[3.3,1.9,1.9,0.7,2.5],
 minze:[3.8,6.9,0,0.9,8],
+zitronengras:[1.8,24,0,0.5,0],sprossen:[3,4,4,0.2,1.8],pak_choi:[1.5,1.2,1.2,0.2,1],reispapier:[0.8,82,0.5,0.2,1],filoteig:[8,55,1,3,2.5],
+spaetzle:[8,42,1,3,2],maultaschen:[7,25,2,6,2.5],ricotta:[8,3,3,10,0],dill:[3.5,5,0,1.1,2.1],
 oel:[0,0,0,100,0],
 apfelsaft:[0.1,10.5,10,0.1,0.2]
 };
 /* Werte der veganen Alternativen (Haferdrink, Sojajoghurt, Pflanzenkäse …) */
 const NUTV={feta:[0.5,20,0,22,0],mozzarella:[1,20,0,21,0],parmesan:[50,12,1,5,20],kaese:[0.5,21,0,23,0],joghurt:[4,1.5,0.5,2.3,1],
 quark:[10,3,2,2,1],milch:[0.5,6.7,4,1.5,0.8],sahne:[0.5,6,1,13.5,0.5],butter:[0,0.5,0.5,80,0],honig:[0,67,60,0,0],
-halloumi:[16,1.5,0.5,9,1.5],pesto:[3,5,2,46,2]};
+halloumi:[16,1.5,0.5,9,1.5],pesto:[3,5,2,46,2],spaetzle:[7,44,1,1.5,2.5],maultaschen:[6,26,2,5,3],ricotta:[12,2,0.5,7,1]};
 const NOTE={kichererbsen:'Dose, abgetropft',kidneybohnen:'Dose, abgetropft',schwarze_bohnen:'Dose, abgetropft',weisse_bohnen:'Dose, abgetropft',
 mais:'Dose, abgetropft',rote_linsen:'trocken',linsen:'trocken',reis:'trocken',nudeln:'trocken',reisnudeln:'trocken',couscous:'trocken',
 bulgur:'trocken',quinoa:'trocken',hirse:'trocken',polenta:'trocken',lasagne:'trocken',haferflocken:'trocken',bruehe:'zubereitet',
@@ -1277,6 +1544,7 @@ erbsen:'TK',edamame:'TK, geschält',beeren:'Mix',nuesse:'Walnuss/Mandel',kerne:'
 tortilla:'Vollkorn',mehl:'Vollkorn',kakao:'stark entölt',zartbitter:'85 %',tomatenmark:'zweifach konzentriert'};
 /* Referenzmengen für Erwachsene (EU-Lebensmittelinformationsverordnung); Ballaststoffe: DGE-Richtwert */
 const RI={kcal:2000,p:50,c:260,z:90,f:70,b:30};
+const goalOf=k=>k==='kcal'?(S.kcalGoal||RI.kcal):(+(S.ngoal||{})[k]||RI[k]);
 
 /* Mengen in g (2 Portionen, falls nicht anders in POR): [Kern-Gruppen in Reihenfolge], {feste Extras} */
 const QTY={
@@ -1347,11 +1615,39 @@ gyros:[[250,240,150,150],{tomate:100,zwiebel:40,oel:15}],
 karottensuppe:[[500,50,80,700],{ingwer:10,oel:10}],
 brokkolisuppe:[[500,200,80,700],{oel:10}],
 linseneintopf:[[150,300,200,80,1000],{tomatenmark:15,essig:15,oel:10}],
-puffer:[[500,60,60],{joghurt:150,oel:20}]
+puffer:[[500,60,60],{joghurt:150,oel:20}],
+gigantes:[[480,400,100,20],{karotte:100,knoblauch:6,oel:20}],fasolada:[[480,150,100,200,80],{zitrone:20,oel:20}],
+fakes:[[150,80,100,200],{knoblauch:6,essig:15,oel:15}],revithia:[[480,150,50],{spinat:100,oel:20}],
+spanakorizo:[[500,120,60,20,40],{oel:20}],spanakopita:[[200,600,200,60],{dill:20,oel:30}],
+briam:[[400,400,300,100],{paprika:150,oel:30}],gemista:[[600,320,120,80,30],{kartoffel:300,oel:30}],
+imambayildi:[[600,200,300,10],{petersilie:15,oel:30}],kolokithokeftedes:[[500,150,60,15],{eier:60,joghurt:150,gurke:100,oel:15}],
+linsenspaetzle:[[150,300,200,80],{raeuchertofu:150,essig:20,tomatenmark:15,oel:10}],maultaschen:[[420,800,200],{schnittlauch:10}],
+kartoffelsalat:[[800,80,200,30],{senf:5,raeuchertofu:150,oel:30}],kartoffelsuppe:[[600,200,80,900],{raeuchertofu:150,oel:15}],
+gruenkohlkartoffeln:[[500,600,100,300],{raeuchertofu:150,senf:10,oel:15}],himmelerde:[[700,300,200],{milch:100,raeuchertofu:100,oel:20}],
+kohlrouladen:[[500,100,60,80,400],{senf:5,oel:15}],flammkuchen:[[240,250,150],{raeuchertofu:100,oel:5}],
+rahmspinat:[[500,600,240,200],{zwiebel:50,mehl:10,oel:10}],erbseneintopf:[[450,300,150,800],{zwiebel:80,raeuchertofu:100,oel:10}],
+pastafagioli:[[120,240,200,80,700],{karotte:80,parmesan:20,oel:15}],risotto:[[150,300,80,600],{parmesan:30,oel:20}],
+caponata:[[500,400,80,100,20],{oliven:40,oel:30}],norma:[[200,300,400,6],{ricotta:80,oel:25}],
+parmigiana:[[600,400,125,30],{zwiebel:60,oel:20}],panzanella:[[200,400,200,50,10],{kichererbsen:120,essig:20,oel:30}],
+ribollita:[[240,300,200,100,100],{zwiebel:80,oel:25}],pastaceci:[[150,240,8,15],{parmesan:15,oel:20}],
+pizza:[[200,150,200,125,300],{backpulver:5,oel:40}],cannelloni:[[240,400,250,600],{parmesan:30,zwiebel:60,oel:10}],
+sommerrollen:[[80,200,250,20],{reisnudeln:50,erdnussmus:30,sojasauce:15,limette:20}],pho:[[150,1200,200,30,100],{pilze:100,sprossen:80,sojasauce:30,koriander:10}],
+bunchay:[[150,200,300,20,30],{zitronengras:15,sojasauce:30,nuesse:20,oel:15}],banhmi:[[200,200,150,15],{zitronengras:10,essig:30,sojasauce:15,oel:15}],
+cari:[[250,400,200,15,80],{karotte:100,reis:120,oel:10}],tofuxaot:[[400,30,10,150],{gurke:150,sojasauce:30,oel:20}],
+pakchoi:[[500,250,15,30,150],{tofu:150,oel:15}],glasnudelsalat:[[150,250,150,20,30],{nuesse:20,sojasauce:20,oel:10}],
+tomatentofusuppe:[[300,200,40,800],{sojasauce:15,oel:10}],bunxao:[[150,200,350,45],{sprossen:80,oel:20}]
 };
-const POR={oats:1,porridge:1,smoothie:1,pancakes:1,joghurtbowl:1,bircher:1,bakedoats:1,hirsebrei:1,herzhaftoats:1,lasagne:4};
+/* Küche je Rezept (neue Rezepte tragen sie selbst) */
+const CU={griechisch:'Griechisch',gyros:'Griechisch',bolognese:'Italienisch',pilzpasta:'Italienisch',bruschetta:'Italienisch',minestrone:'Italienisch',gnocchi:'Italienisch',lasagne:'Italienisch',polenta:'Italienisch',erbsenpasta:'Italienisch',pestopasta:'Italienisch',frittata:'Italienisch',
+pellkartoffeln:'Deutsch',krautpfanne:'Deutsch',linseneintopf:'Deutsch',puffer:'Deutsch',rotkohlsalat:'Deutsch',auflauf:'Deutsch',quarkbrot:'Deutsch',
+shakshuka:'Orientalisch',falafel:'Orientalisch',taboule:'Orientalisch',mujadara:'Orientalisch',blumenkohl:'Orientalisch',marokkocouscous:'Orientalisch',halloumi:'Orientalisch',wraps:'Orientalisch',
+curry:'Indisch',dal:'Indisch',aloopalak:'Indisch',bowl:'Asiatisch',chickenpfanne:'Asiatisch',friedrice:'Asiatisch',erdnussnudeln:'Asiatisch',thaisuppe:'Asiatisch',misosuppe:'Asiatisch',bibimbap:'Asiatisch',ingwertofu:'Asiatisch',
+chili:'Mexikanisch',quesadillas:'Mexikanisch',burrito:'Mexikanisch',suesskartoffel:'Mexikanisch'};
+const CUISINES=['Griechisch','Deutsch','Italienisch','Vietnamesisch','Orientalisch','Indisch','Asiatisch','Mexikanisch','International','Eigene'];
+const cuOf=r=>r.own?'Eigene':(r.cu||CU[r.id]||'International');
+const POR={spanakopita:4,cannelloni:3,oats:1,porridge:1,smoothie:1,pancakes:1,joghurtbowl:1,bircher:1,bakedoats:1,hirsebrei:1,herzhaftoats:1,lasagne:4};
 /* vegane Ersatzmengen, wenn eine Zutat getauscht wird */
-const SQ={shakshuka:{tofu:200},frittata:{kichererbsenmehl:100},waffeln:{leinsamen:14},ruehrei:{tofu:200},puffer:{leinsamen:7}};
+const SQ={rahmspinat:{tofu:200},shakshuka:{tofu:200},frittata:{kichererbsenmehl:100},waffeln:{leinsamen:14},ruehrei:{tofu:200},puffer:{leinsamen:7}};
 /* Snacks: [Gramm je Zutatenzeile], Portionen, Portionsangabe */
 const SQTY={
 schokocreme:[[150,80,15,125,0],18,'1 EL (ca. 20 g)'],
@@ -1470,7 +1766,7 @@ currypaste:[15,'EL','EL'],miso:[18,'EL','EL'],pesto:[15,'EL','EL'],zartbitter:[5
 milch:[200,'Glas','Gläser'],sahne:[200,'Becher','Becher'],butter:[15,'EL','EL'],parmesan:[5,'EL gerieben','EL gerieben'],kaese:[25,'Scheibe','Scheiben'],
 curry:[2,'TL','TL'],kreuzkuemmel:[2,'TL','TL'],paprikapulver:[2,'TL','TL'],zimt:[2,'TL','TL'],oregano:[1,'TL','TL'],kurkuma:[3,'TL','TL'],
 basilikum:[30,'Bund','Bund'],petersilie:[30,'Bund','Bund'],koriander:[30,'Bund','Bund'],schnittlauch:[25,'Bund','Bund'],minze:[20,'Bund','Bund'],
-backpulver:[15,'Päckchen','Päckchen'],gnocchi:[500,'Packung','Packungen'],joghurt:[150,'Becher (klein)','Becher (klein)']
+backpulver:[15,'Päckchen','Päckchen'],reispapier:[8,'Blatt','Blätter'],maultaschen:[60,'Maultasche','Maultaschen'],pak_choi:[250,'Staude','Stauden'],zitronengras:[15,'Stange','Stangen'],dill:[20,'Bund','Bund'],ricotta:[250,'Becher','Becher'],filoteig:[20,'Blatt','Blätter'],gnocchi:[500,'Packung','Packungen'],joghurt:[150,'Becher (klein)','Becher (klein)']
 };
 const fmtCount=n=>{if(n<2){const r=Math.round(n*2)/2;const w=Math.floor(r);return (w?w:'')+(r%1?'½':'')||'½';}return String(Math.round(n));};
 const pcs=(id,g)=>{const p=PIECE[id];if(!p||!g)return '';const n=g/p[0];if(n<0.4||n>40)return '';const r=n<2?Math.max(0.5,Math.round(n*2)/2):Math.round(n);return ` (≈ ${fmtCount(n)} ${r>1?p[2]:p[1]})`;};
@@ -1543,11 +1839,13 @@ const S={
  planSlots:store.get('planSlots',['fruehstueck','mittag','abend','snack']),
  planDev:store.get('planDev',true),
  plan:store.get('plan',null),
+ ngoal:store.get('ngoal',{})||{},
+ own:store.get('own',[])||[],
  maxTime:0, meal:'all', showAll:false
 };
 if(!Array.isArray(S.chips)){S.chips=['zucchini','paprika','kichererbsen','zwiebel','feta'].map(id=>({label:I[id].n,id}));S.example=true;}
 const vegan=()=>S.diet==='vegan';
-const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('buy',S.buy);store.set('kcalGoal',S.kcalGoal);store.set('planSlots',S.planSlots);store.set('planDev',S.planDev);store.set('plan',S.plan);store.set('allergies',S.allergies);};
+const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('buy',S.buy);store.set('kcalGoal',S.kcalGoal);store.set('planSlots',S.planSlots);store.set('planDev',S.planDev);store.set('plan',S.plan);store.set('ngoal',S.ngoal);store.set('own',S.own);store.set('allergies',S.allergies);};
 
 /* ============ HILFEN ============ */
 const $=(s,el=document)=>el.querySelector(s);
@@ -1571,27 +1869,27 @@ const AGN=Object.fromEntries(ALLERGIES.map(a=>[a[0],a[1]]));
 const EXC={nuesse:['nuesse','haselnuesse','cashews','pesto'],erdnuss:['erdnussmus'],soja:['tofu','raeuchertofu','tempeh','edamame','miso'],sesam:['tahini'],senf:['senf'],sellerie:['sellerie']};
 /* Zutaten, die durch eine verträgliche Variante ersetzt werden */
 const LBL={
- gluten:{nudeln:'Glutenfreie Nudeln',brot:'Glutenfreies Brot',tortilla:'Mais-Tortillas',mehl:'Glutenfreies Mehl',lasagne:'Glutenfreie Lasagneplatten',gnocchi:'Glutenfreie Gnocchi',haferflocken:'Glutenfreie Haferflocken',couscous:'Maiscouscous',bulgur:'Quinoa (statt Bulgur)',sojasauce:'Tamari (glutenfrei)',vegan_chicken:'Veganes Chicken (glutenfrei)',vegan_hack:'Veganes Hack (glutenfrei)',bruehe:'Gemüsebrühe (glutenfrei)'},
- soja:{vegan_chicken:'Erbsenprotein-Chicken (sojafrei)',vegan_hack:'Erbsenhack (sojafrei)',sojasauce:'Kokos-Aminos (statt Sojasauce)',joghurt:'Haferjoghurt',quark:'Haferquark'},
+ gluten:{nudeln:'Glutenfreie Nudeln',brot:'Glutenfreies Brot',tortilla:'Mais-Tortillas',mehl:'Glutenfreies Mehl',lasagne:'Glutenfreie Lasagneplatten',gnocchi:'Glutenfreie Gnocchi',haferflocken:'Glutenfreie Haferflocken',couscous:'Maiscouscous',bulgur:'Quinoa (statt Bulgur)',sojasauce:'Tamari (glutenfrei)',vegan_chicken:'Veganes Chicken (glutenfrei)',vegan_hack:'Veganes Hack (glutenfrei)',bruehe:'Gemüsebrühe (glutenfrei)',spaetzle:'Glutenfreie Spätzle',maultaschen:'Glutenfreie Maultaschen',filoteig:'Glutenfreier Filoteig'},
+ soja:{vegan_chicken:'Erbsenprotein-Chicken (sojafrei)',vegan_hack:'Erbsenhack (sojafrei)',sojasauce:'Kokos-Aminos (statt Sojasauce)',joghurt:'Haferjoghurt',quark:'Haferquark',ricotta:'Hafer-Frischkäse'},
  sesam:{kerne:'Kürbis- oder Sonnenblumenkerne'},
  sellerie:{bruehe:'Gemüsebrühe ohne Sellerie'},
- laktose:{milch:'Laktosefreie Milch',joghurt:'Laktosefreier Joghurt',quark:'Laktosefreier Quark',sahne:'Laktosefreie Sahne',kaese:'Gereifter Käse (laktosefrei)',mozzarella:'Laktosefreier Mozzarella',feta:'Laktosefreier Feta',parmesan:'Parmesan (von Natur aus laktosefrei)',butter:'Laktosefreie Butter',halloumi:'Laktosefreier Halloumi'}
+ laktose:{milch:'Laktosefreie Milch',joghurt:'Laktosefreier Joghurt',quark:'Laktosefreier Quark',sahne:'Laktosefreie Sahne',kaese:'Gereifter Käse (laktosefrei)',mozzarella:'Laktosefreier Mozzarella',feta:'Laktosefreier Feta',parmesan:'Parmesan (von Natur aus laktosefrei)',butter:'Laktosefreie Butter',halloumi:'Laktosefreier Halloumi',ricotta:'Laktosefreier Ricotta'}
 };
 /* Text-Prüfung für Aufpimp-Vorschläge ohne eigene Zutat */
 const TXT={nuesse:/nüss|nuss|mandel|cashew|pinienkern|pesto/i,erdnuss:/erdnuss|erdnüss/i,sesam:/sesam|tahini/i,senf:/senf/i,soja:/tofu|soja|edamame|miso|tempeh/i,sellerie:/sellerie/i};
 /* Allergene je Zutat (EU-Kennzeichnung) für die Nährwerttabelle */
-const AG_OF={nudeln:['Gluten'],brot:['Gluten'],tortilla:['Gluten'],mehl:['Gluten'],lasagne:['Gluten'],gnocchi:['Gluten'],couscous:['Gluten'],bulgur:['Gluten'],haferflocken:['Gluten (Hafer)'],sojasauce:['Soja','Gluten'],miso:['Soja'],tofu:['Soja'],raeuchertofu:['Soja'],tempeh:['Soja'],edamame:['Soja'],vegan_chicken:['meist Soja','ggf. Gluten'],vegan_hack:['meist Soja'],eier:['Ei'],nuesse:['Schalenfrüchte'],haselnuesse:['Schalenfrüchte'],cashews:['Schalenfrüchte'],pesto:['Milch','Schalenfrüchte'],erdnussmus:['Erdnuss'],tahini:['Sesam'],kerne:['ggf. Sesam'],senf:['Senf'],sellerie:['Sellerie'],bruehe:['oft Sellerie'],feta:['Milch'],mozzarella:['Milch'],parmesan:['Milch'],kaese:['Milch'],joghurt:['Milch'],quark:['Milch'],milch:['Milch'],sahne:['Milch'],butter:['Milch'],halloumi:['Milch'],zartbitter:['ggf. Milchspuren']};
-const AG_V={joghurt:['Soja'],quark:['Soja'],pesto:['Schalenfrüchte'],milch:['ggf. Gluten (Hafer)'],sahne:['ggf. Gluten (Hafer)'],halloumi:['Soja'],parmesan:[]};
+const AG_OF={nudeln:['Gluten'],brot:['Gluten'],tortilla:['Gluten'],mehl:['Gluten'],lasagne:['Gluten'],gnocchi:['Gluten'],couscous:['Gluten'],bulgur:['Gluten'],haferflocken:['Gluten (Hafer)'],sojasauce:['Soja','Gluten'],miso:['Soja'],tofu:['Soja'],raeuchertofu:['Soja'],tempeh:['Soja'],edamame:['Soja'],vegan_chicken:['meist Soja','ggf. Gluten'],vegan_hack:['meist Soja'],eier:['Ei'],nuesse:['Schalenfrüchte'],haselnuesse:['Schalenfrüchte'],cashews:['Schalenfrüchte'],pesto:['Milch','Schalenfrüchte'],erdnussmus:['Erdnuss'],tahini:['Sesam'],kerne:['ggf. Sesam'],senf:['Senf'],sellerie:['Sellerie'],bruehe:['oft Sellerie'],feta:['Milch'],mozzarella:['Milch'],parmesan:['Milch'],kaese:['Milch'],joghurt:['Milch'],quark:['Milch'],milch:['Milch'],sahne:['Milch'],butter:['Milch'],halloumi:['Milch'],zartbitter:['ggf. Milchspuren'],spaetzle:['Gluten','Ei'],maultaschen:['Gluten','Ei'],filoteig:['Gluten'],ricotta:['Milch']};
+const AG_V={spaetzle:['Gluten'],maultaschen:['Gluten'],ricotta:['Soja'],joghurt:['Soja'],quark:['Soja'],pesto:['Schalenfrüchte'],milch:['ggf. Gluten (Hafer)'],sahne:['ggf. Gluten (Hafer)'],halloumi:['Soja'],parmesan:[]};
 const has=k=>S.allergies.includes(k);
-const plantSwap=id=>{const x=I[id];if(!x||!x.vg)return false;if(vegan())return true;if(id==='eier')return has('ei');if(x.c==='m')return has('milch');return false;};
+const plantSwap=id=>{const x=I[id];if(!x||!x.vg)return false;if(vegan())return true;if(id==='eier')return has('ei');if(id==='spaetzle'||id==='maultaschen')return has('ei');if(x.c==='m')return has('milch');return false;};
 const excluded=id=>Object.keys(EXC).some(k=>has(k)&&EXC[k].includes(id));
 const baseName=id=>{const x=I[id];return vegan()&&x.vg?x.vg:x.n;};
 const dn=id=>{const x=I[id];if(!x)return id==='oel'?'Öl':id;const ps=plantSwap(id);let n=ps?x.vg:x.n;
- for(const k of ['gluten','soja','sesam','sellerie']){if(has(k)&&LBL[k][id]&&(k!=='soja'||ps||!['joghurt','quark'].includes(id)))n=LBL[k][id];}
+ for(const k of ['gluten','soja','sesam','sellerie']){if(has(k)&&LBL[k][id]&&(k!=='soja'||ps||!['joghurt','quark','ricotta'].includes(id)))n=LBL[k][id];}
  if(has('laktose')&&!ps&&LBL.laktose[id])n=LBL.laktose[id];
  return n;};
 const agList=id=>{let l=plantSwap(id)?(AG_V[id]||[]):(AG_OF[id]||[]);
- if(has('soja')&&plantSwap(id)&&(id==='joghurt'||id==='quark'))l=['ggf. Gluten (Hafer)'];
+ if(has('soja')&&plantSwap(id)&&['joghurt','quark','ricotta'].includes(id))l=['ggf. Gluten (Hafer)'];
  if(has('gluten')&&LBL.gluten[id])l=l.filter(x=>!/Gluten/.test(x));
  if(has('soja')&&LBL.soja[id]&&!plantSwap(id))l=l.filter(x=>!/Soja/.test(x));
  return l;};
@@ -1644,11 +1942,11 @@ function nutDetails(n){
  const line=(name,val,unit,ri)=>`<tr><td>${name}</td><td class="num">${fmt(val)} ${unit}</td><td class="num">${ri?Math.round(val/ri*100)+' %':''}</td></tr>`;
  const rowsH=n.rows.map(r=>`<tr><td>${esc(r.label)}</td><td class="num">${esc(r.m)}</td><td class="num">${r.kcal==null?'–':fmt(r.kcal)}</td></tr>`).join('');
  return `<details><summary>Nährwerte &amp; Mengen</summary>
-  <div class="tablewrap"><table class="ntable"><thead><tr><th>Pro Portion</th><th class="num">Menge</th><th class="num">% RM</th></tr></thead><tbody>
-  ${line('Energie',p.kcal,'kcal',RI.kcal)}${line('Eiweiß',p.p,'g',RI.p)}${line('Kohlenhydrate',p.c,'g',RI.c)}${line('davon Zucker',p.z,'g',RI.z)}${line('Fett',p.f,'g',RI.f)}${line('Ballaststoffe',p.b,'g',RI.b)}
+  <div class="tablewrap"><table class="ntable"><thead><tr><th>Pro Portion</th><th class="num">Menge</th><th class="num">% Ziel</th></tr></thead><tbody>
+  ${line('Energie',p.kcal,'kcal',goalOf('kcal'))}${line('Eiweiß',p.p,'g',goalOf('p'))}${line('Kohlenhydrate',p.c,'g',goalOf('c'))}${line('davon Zucker',p.z,'g',goalOf('z'))}${line('Fett',p.f,'g',goalOf('f'))}${line('Ballaststoffe',p.b,'g',goalOf('b'))}
   </tbody></table></div>
   ${n.rows.length?`<div class="tablewrap"><table class="ntable"><thead><tr><th>Zutat</th><th class="num">Menge</th><th class="num">kcal (Menge)</th></tr></thead><tbody>${rowsH}</tbody>${n.total?`<tfoot><tr><td>Gesamt (${n.por} ${n.por===1?'Portion':'Portionen'})</td><td></td><td class="num">${fmt(n.total)}</td></tr></tfoot>`:''}</table></div>`:''}
-  <p class="small muted">${n.ai?'Von Claude geschätzt.':'Schätzwerte aus Durchschnittswerten der Zutaten, ohne Salz. Reis, Nudeln, Linsen und Getreide als Trockengewicht, Flüssigkeiten in ml ≈ g.'} % RM = Anteil an der Referenzmenge für Erwachsene (2000 kcal) laut EU-Lebensmittelinformationsverordnung, Ballaststoffe nach DGE-Richtwert (30 g).</p>
+  <p class="small muted">${n.ai?'Von Claude geschätzt.':n.manual?'Selbst eingetragene Werte.':'Schätzwerte aus Durchschnittswerten der Zutaten, ohne Salz. Reis, Nudeln, Linsen und Getreide als Trockengewicht, Flüssigkeiten in ml ≈ g.'}${n.mixed?' Zutaten außerhalb des Katalogs hat Claude geschätzt.':''}${n.incomplete?' Zutaten ohne Nährwertangabe sind nicht eingerechnet.':''} % Ziel = Anteil an deinen Tageszielen aus dem Tagesplan; ohne eigene Ziele gelten die EU-Referenzmengen für Erwachsene (2000 kcal) und 30 g Ballaststoffe (DGE).</p>
  </details>`;
 }
 function aiNut(x,por){
@@ -1714,7 +2012,10 @@ function recipeView(r,owned,user,have){
    if(excluded(use)){if(I[use])adapt.push(I[use].n+' weglassen');continue;}
    noteAdapt(use);items.push({id:use,g,label:use==='oel'?'Öl':dn(use)});
  }
- const por=POR[r.id]||2;const nut=calcNut(items,por);
+ if(r.free)r.free.forEach((f,i)=>{chips.push({label:f.name,state:'plain'});if(f.est&&+f.g){const k='x_'+r.id+'_'+i;NUT[k]=f.est;items.push({id:k,g:+f.g,label:f.name});}});
+ const por=POR[r.id]||2;let nut=calcNut(items,por);
+ if(r.free){for(const f of r.free)if(!f.est)nut.rows.push({label:f.name,m:+f.g?f.g+' g':'',kcal:null});nut.mixed=r.free.some(f=>f.est);nut.incomplete=r.free.some(f=>!f.est);}
+ if(r.manual){const m=r.manual;nut={per:{kcal:+m.kcal||0,p:+m.p||0,c:+m.c||0,z:+m.z||0,f:+m.f||0,b:+m.b||0},rows:nut.rows.map(x=>({...x,kcal:null})),por,total:0,manual:true};}
  for(const o of r.opt){
    const alts=altsFor(o,r);const h=alts.find(a=>have.has(a)&&!used.has(a));
    if(h){used.add(h);if(user.has(h))userHits++;chips.push({label:dn(h),state:'extra'});}
@@ -1754,7 +2055,7 @@ function cardHTML(v,opt){
  return `<article class="card">
   <div class="card-h"><h3>${esc(v.name)}</h3><span class="time">${clock}${esc(v.time)} Min.</span></div>
   <p class="desc">${esc(v.desc)}</p>
-  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}${v.adapt&&v.adapt.length?'<span class="tag-adapt">angepasst</span>':''}${v.blockedDev?dev:`<span>${dev}</span>`}${veg}</div>
+  <div class="meta">${status}${ai}${v.nut&&v.nut.per.p>=20?'<span class="tag-pro">eiweißreich</span>':''}${v.adapt&&v.adapt.length?'<span class="tag-adapt">angepasst</span>':''}${v.r&&v.r.own?`<span class="tag-ai">Eigenes Rezept</span><button type="button" class="linkbtn" data-edit="${v.r.id}">Bearbeiten</button>`:''}${list&&v.r&&!v.r.own?`<span>${esc(cuOf(v.r))}</span>`:''}${v.blockedDev?dev:`<span>${dev}</span>`}${veg}</div>
   ${v.nut?nutStrip(v.nut):''}
   <ul class="ings">${chips}</ul>
   ${pimp}
@@ -1785,13 +2086,16 @@ function renderQuick(){
  $('#stockCount').textContent=n?`(${n} als „Hab ich“ markiert)`:'(noch nichts als vorrätig markiert)';
  $('#useStock').checked=S.useStock;
 }
-const G={q:'',meal:'all',max:0,sort:'name',onlyDev:false,showAll:false};
+const G={q:'',meal:'all',max:0,sort:'name',onlyDev:false,showAll:false,cu:'Alle'};
 function renderAllRecipes(){
  const owned=new Set(S.devices);const {user,have}=haveSets();
  const allowed=RECIPES.filter(recipeAllowed);
  let list=allowed.map(r=>{const v=recipeView(r,owned,user,have);if(!v.method){v.blockedDev=missingDevices(r.m);v.time=r.m[0][1];}return v;});
  const q=G.q.trim().toLowerCase();const qid=q?lookup(q):null;
  if(q)list=list.filter(v=>v.name.toLowerCase().includes(q)||v.desc.toLowerCase().includes(q)||v.chips.some(c=>c.label.toLowerCase().includes(q))||(qid&&v.r.core.concat(v.r.opt).some(g=>g.split('|').includes(qid))));
+ const cuCount={};for(const v of list)cuCount[cuOf(v.r)]=(cuCount[cuOf(v.r)]||0)+1;
+ $('#gCu').innerHTML=['Alle',...CUISINES].filter(c=>c==='Alle'||cuCount[c]).map(c=>`<button type="button" data-cu="${c}" aria-pressed="${G.cu===c}">${c==='Eigene'?'Eigene Rezepte':c} <span class="muted">${c==='Alle'?list.length:cuCount[c]}</span></button>`).join('');
+ if(G.cu!=='Alle')list=list.filter(v=>cuOf(v.r)===G.cu);
  if(G.meal!=='all')list=list.filter(v=>(v.r.meal||'main')===G.meal);
  if(G.max)list=list.filter(v=>v.time<=G.max);
  if(G.onlyDev)list=list.filter(v=>!v.blockedDev);
@@ -1874,6 +2178,84 @@ function snackHTML(sn,ai){
   ${nut?nutDetails(nut):''}
  </article>`;
 }
+/* ============ EIGENE REZEPTE ============ */
+function registerOwn(){
+ for(let i=RECIPES.length-1;i>=0;i--)if(RECIPES[i].own)RECIPES.splice(i,1);
+ for(const o of S.own){
+   const ids=[],gs=[];
+   for(const x of o.ing){if(x.id&&I[x.id]){const k=ids.indexOf(x.id);if(k>=0)gs[k]+=+x.g||0;else{ids.push(x.id);gs.push(+x.g||0);}}}
+   QTY[o.id]=[gs,{}];POR[o.id]=o.por||2;
+   RECIPES.push({id:o.id,n:o.n,d:o.d||'Eigenes Rezept',core:ids,opt:[],m:[['',o.time||30]],s:o.steps&&o.steps.length?o.steps:['Keine Zubereitung eingetragen.'],p:[],meal:o.meal||'main',own:true,
+     free:o.ing.filter(x=>!(x.id&&I[x.id])&&x.name).map(x=>({name:x.name,g:x.g,est:x.est||null})),manual:o.nm==='manual'?o.man:null});
+ }
+}
+const OWN={id:null,mode:'auto',delArm:false};
+const MAN=[['kcal','kcal'],['p','Eiweiß (g)'],['c','Kohlenhydrate (g)'],['z','davon Zucker (g)'],['f','Fett (g)'],['b','Ballaststoffe (g)']];
+const isOil=n=>/(^|\s|-)(öl|oel|olivenöl|rapsöl|sonnenblumenöl)$/i.test(n.trim())||/öl$/i.test(n.trim());
+function ingRowHTML(x){x=x||{};return `<div class="irow"${x.est?` data-est='${JSON.stringify(x.est)}' data-est-for="${esc((x.name||'').toLowerCase())}"`:''}><input class="iname" list="ingList" placeholder="Zutat, z. B. Linsen" value="${esc(x.name||'')}" aria-label="Zutat"><input class="ig" type="number" min="0" step="5" placeholder="g" value="${x.g||''}" aria-label="Menge in Gramm" inputmode="numeric"><button type="button" class="ix" aria-label="Zutat entfernen">×</button><span class="ihint"></span></div>`;}
+function readOwnIngs(){
+ return [...document.querySelectorAll('#oIngs .irow')].map(row=>{
+   const name=row.querySelector('.iname').value.trim();const g=+row.querySelector('.ig').value||0;
+   let id=name?lookup(name):null;let est=null,basic=false;
+   if(id==='__basic'){basic=true;id=null;est=isOil(name)?[0,0,0,100,0]:[0,0,0,0,0];}
+   else if(!id&&row.dataset.est&&row.dataset.estFor===name.toLowerCase()){try{est=JSON.parse(row.dataset.est);}catch(e){}}
+   return {name,g,id,est,basic,row};
+ }).filter(x=>x.name);
+}
+function ownAutoNut(ings){
+ const por=Math.max(1,+$('#oPor').value||2);const tot={kcal:0,p:0,c:0,z:0,f:0,b:0};let unk=[];
+ for(const x of ings){const a=x.id?NUT[x.id]:x.est;if(!a){unk.push(x);continue;}if(!x.g)continue;const k=x.g/100;tot.kcal+=kcalOf(a)*k;tot.p+=a[0]*k;tot.c+=a[1]*k;tot.z+=a[2]*k;tot.f+=a[3]*k;tot.b+=a[4]*k;}
+ const per={};for(const k in tot)per[k]=tot[k]/por;return {per,unk,noG:ings.filter(x=>!x.g).length};
+}
+function updateOwnPreview(){
+ const ings=readOwnIngs();
+ for(const row of document.querySelectorAll('#oIngs .irow')){
+   const x=ings.find(i=>i.row===row);const h=row.querySelector('.ihint');if(!x){h.textContent='';h.className='ihint';continue;}
+   if(x.id){h.className='ihint ok';h.textContent=`✓ ${I[x.id].n} · ${fmt(kcalOf(NUT[x.id]))} kcal / 100 g${x.g?pcs(x.id,x.g):''}`;}
+   else if(x.basic){h.className='ihint ok';h.textContent=x.est[3]?'✓ Öl · 900 kcal / 100 g':'✓ ohne nennenswerte Kalorien';}
+   else if(x.est){h.className='ihint ok';h.textContent=`✓ von Claude geschätzt · ${fmt(kcalOf(x.est))} kcal / 100 g`;}
+   else{h.className='ihint';h.textContent='Nicht im Katalog – wird nur mit Schätzung oder eigenen Werten eingerechnet.';}
+ }
+ const r=ownAutoNut(ings);const p=r.per;
+ $('#oAuto').innerHTML=ings.length?`<div class="macros"><div><b>${fmt(p.kcal)}</b><span>kcal</span></div><div><b>${fmt(p.p)} g</b><span>Eiweiß</span></div><div><b>${fmt(p.c)} g</b><span>Kohlenhydrate (${fmt(p.z)} g Zucker)</span></div><div><b>${fmt(p.f)} g</b><span>Fett</span></div><div><b>${fmt(p.b)} g</b><span>Ballaststoffe</span></div></div>
+  ${r.unk.length?`<p class="small">Ohne Nährwerte: <b>${esc(r.unk.map(x=>x.name).join(', '))}</b>. ${sampleFn?`<button type="button" class="linkbtn" id="oEst">Von Claude schätzen lassen</button> <span class="ai-status" id="oEstStatus"></span>`:'Trag die Werte unten selbst ein, wenn sie fehlen.'}</p>`:''}
+  ${r.noG?`<p class="small muted">${r.noG} ${r.noG===1?'Zutat hat':'Zutaten haben'} noch keine Menge.</p>`:''}`:'<p class="small muted">Füge Zutaten mit Mengen hinzu – die Nährwerte pro Portion werden automatisch aus unserer Nährwerttabelle berechnet.</p>';
+}
+function renderManGrid(vals){vals=vals||{};$('#oManGrid').innerHTML=MAN.map(([k,l])=>`<label>${l}<input type="number" min="0" step="1" data-man="${k}" value="${vals[k]!=null&&vals[k]!==''?Math.round(vals[k]*10)/10:''}" inputmode="decimal"></label>`).join('');}
+function setOwnMode(m){OWN.mode=m;[...$('#oMode').children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.m===m)));$('#oManual').hidden=m!=='manual';}
+function openOwn(id){
+ const o=id?S.own.find(x=>x.id===id):null;OWN.id=o?o.id:null;OWN.delArm=false;
+ $('#ownTitle').textContent=o?'Rezept bearbeiten':'Eigenes Rezept';
+ $('#oName').value=o?o.n:'';$('#oDesc').value=o?o.d||'':'';$('#oMeal').value=o?o.meal||'main':'main';$('#oPor').value=o?o.por:2;$('#oTime').value=o?o.time:30;
+ $('#oIngs').innerHTML=(o&&o.ing.length?o.ing:[{},{},{}]).map(ingRowHTML).join('');
+ $('#oSteps').value=o?(o.steps||[]).join('\n'):'';
+ renderManGrid(o&&o.man);setOwnMode(o?o.nm||'auto':'auto');
+ $('#oDel').hidden=!o;$('#oDel').textContent='Rezept löschen';$('#oErr').hidden=true;
+ $('#ownSheet').hidden=false;updateOwnPreview();setTimeout(()=>$('#oName').focus(),30);
+}
+function closeOwn(){$('#ownSheet').hidden=true;}
+async function estimateUnknown(){
+ const unk=readOwnIngs().filter(x=>!x.id&&!x.est);if(!unk.length||!sampleFn)return;
+ const st=$('#oEstStatus');if(st){st.className='ai-status dots';st.textContent='Claude schätzt';}
+ const prompt=`Schätze typische Nährwerte pro 100 g für diese Lebensmittel, wie sie in Deutschland gekauft werden. Kohlenhydrate ohne Ballaststoffe, alles in Gramm. Antworte NUR mit einem JSON-Array in derselben Reihenfolge, Beispiel: [{"name":"Linsen","eiweiss":24,"kohlenhydrate":41,"zucker":2,"fett":1.5,"ballaststoffe":17}]\nLebensmittel: ${unk.map(x=>x.name.slice(0,60)).join('; ')}`;
+ try{
+   const arr=await sampleFn.json(prompt,{modelTier:'quick'});
+   (Array.isArray(arr)?arr:[]).forEach((o,i)=>{const x=unk[i];if(!x||!o)return;const est=[+o.eiweiss||0,+o.kohlenhydrate||0,+o.zucker||0,+o.fett||0,+o.ballaststoffe||0];x.row.dataset.est=JSON.stringify(est);x.row.dataset.estFor=x.name.toLowerCase();});
+   updateOwnPreview();
+ }catch(e){if(e&&HIDE.includes(e.code))hideAI();const s2=$('#oEstStatus');if(s2){s2.className='ai-status err';s2.textContent=errMsg(e);}}
+}
+function saveOwn(e){
+ e.preventDefault();const err=m=>{const x=$('#oErr');x.textContent=m;x.hidden=false;};
+ const name=$('#oName').value.trim();const ings=readOwnIngs();
+ if(!name)return err('Bitte gib dem Rezept einen Namen.');
+ let man=null;
+ if(OWN.mode==='manual'){man={};for(const inp of document.querySelectorAll('#oManGrid input'))man[inp.dataset.man]=inp.value===''?0:+inp.value;if(!man.kcal)return err('Trage mindestens die Kalorien pro Portion ein.');}
+ else if(!ings.length)return err('Füge mindestens eine Zutat hinzu oder trage die Nährwerte selbst ein.');
+ const o={id:OWN.id||('u'+Date.now().toString(36)),n:name,d:$('#oDesc').value.trim(),meal:$('#oMeal').value,por:Math.max(1,Math.min(12,Math.round(+$('#oPor').value||2))),time:Math.max(1,Math.min(600,Math.round(+$('#oTime').value||30))),
+   ing:ings.map(x=>({name:x.name,g:x.g,id:x.id||null,est:x.id?null:x.est})),steps:$('#oSteps').value.split('\n').map(t=>t.trim()).filter(Boolean),nm:OWN.mode,man};
+ S.own=OWN.id?S.own.map(x=>x.id===o.id?o:x):[...S.own,o];save();registerOwn();closeOwn();renderAll();toast('Rezept gespeichert – du findest es unter „Gerichte“.');
+}
+
 /* ============ TAGESPLAN ============ */
 const SLOTS=[['fruehstueck','Frühstück','b'],['mittag','Mittagessen','m'],['abend','Abendessen','m'],['snack','Snack oder Getränk','s']];
 const snackName=sn=>sn.vn&&(vegan()||has('milch'))?sn.vn:vz(sn.n);
@@ -1882,15 +2264,22 @@ function snackNut(sn){const sq=sn.gq?[sn.gq,sn.por,sn.pl]:SQTY[sn.id];if(!sq)ret
 function planPool(){
  const owned=new Set(S.devices);const {user,have}=haveSets();
  const rv=RECIPES.filter(recipeAllowed).map(r=>recipeView(r,owned,user,have)).filter(v=>!S.planDev||v.method);
- const opt=v=>({type:'r',id:v.r.id,kcal:v.nut.per.kcal,p:v.nut.per.p,name:v.name});
+ const opt=v=>({type:'r',id:v.r.id,kcal:v.nut.per.kcal,p:v.nut.per.p,nut:v.nut,name:v.name});
  const sn=[...SNACKS,...DRINKS].filter(x=>!x.ing.some(l=>l[2]&&excluded(l[2]))&&(!S.planDev||pickMethod(x.m,owned)))
-   .map(x=>{const n=snackNut(x);return n?{type:'s',id:x.id,kcal:n.per.kcal,p:n.per.p,name:snackName(x)}:null;}).filter(Boolean);
+   .map(x=>{const n=snackNut(x);return n?{type:'s',id:x.id,kcal:n.per.kcal,p:n.per.p,nut:n,name:snackName(x)}:null;}).filter(Boolean);
  return {b:rv.filter(v=>(v.r.meal||'main')==='breakfast').map(opt),m:rv.filter(v=>(v.r.meal||'main')==='main').map(opt),s:sn};
 }
 const FACT={b:[1,1.5,2],m:[1,1.5],s:[1,2]};
 const pickR=a=>a[Math.floor(Math.random()*a.length)];
 function planTarget(){const e=Math.max(0,+$('#kEaten').value||0);return S.kcalGoal-e;}
-function scorePlan(items,T){const tot=items.reduce((a,x)=>a+x.kcal*x.f,0),p=items.reduce((a,x)=>a+x.p*x.f,0);const W={b:.25,m:.35,s:.1},kd=x=>SLOTS.find(s=>s[0]===x.slot)[2],wt=items.reduce((a,x)=>a+W[kd(x)],0);return Math.abs(tot-T)-0.5*p+items.reduce((a,x)=>a+(x.f>1?18:0)+Math.max(0,x.kcal*x.f-1.6*W[kd(x)]/wt*T)*0.6,0);}
+function scorePlan(items,T){const tot=items.reduce((a,x)=>a+x.kcal*x.f,0),p=items.reduce((a,x)=>a+x.p*x.f,0);const W={b:.25,m:.35,s:.1},kd=x=>SLOTS.find(s=>s[0]===x.slot)[2],wt=items.reduce((a,x)=>a+W[kd(x)],0);const ng=S.ngoal||{},rest=T/S.kcalGoal;let gp=0;
+ const sumK=k=>items.reduce((a,x)=>a+((x.nut&&x.nut.per[k])||0)*x.f,0);
+ if(+ng.p)gp+=Math.abs(sumK('p')-ng.p*rest)*6; else gp-=0.5*p;
+ if(+ng.c)gp+=Math.abs(sumK('c')-ng.c*rest)*2;
+ if(+ng.f)gp+=Math.abs(sumK('f')-ng.f*rest)*4;
+ if(+ng.b)gp+=Math.max(0,ng.b*rest-sumK('b'))*4;
+ if(+ng.z)gp+=Math.max(0,sumK('z')-ng.z*rest)*6;
+ return Math.abs(tot-T)+gp+items.reduce((a,x)=>a+(x.f>1?18:0)+Math.max(0,x.kcal*x.f-1.6*W[kd(x)]/wt*T)*0.6,0);}
 function makePlan(){
  const T=planTarget();const pool=planPool();const slots=SLOTS.filter(s=>S.planSlots.includes(s[0]));
  if(T<=0||!slots.length){S.plan=[];save();return;}
@@ -1921,7 +2310,22 @@ function planItems(){
    const sn=[...SNACKS,...DRINKS].find(d=>d.id===x.id);if(!sn||sn.ing.some(l=>l[2]&&excluded(l[2])))return null;const n=snackNut(sn);return {...x,sn,kcal:n.per.kcal,p:n.per.p,nut:n,name:snackName(sn)};
  });
 }
+const NG=[['p','Eiweiß','g',.15,4],['c','Kohlenhydrate','g',.5,4],['f','Fett','g',.3,9],['b','Ballaststoffe','g',0,0],['z','Zucker höchstens','g',0,0]];
+function macroCells(tot,e){
+ const ng=S.ngoal||{};const rest=planTarget()/S.kcalGoal;
+ const cell=(lbl,k,extra,isMax)=>{const g=+ng[k]?ng[k]*rest:0;const v=tot[k];const pct=g?Math.min(100,v/g*100):0;
+   const ok=!g||(isMax?v<=g:Math.abs(v-g)<=g*0.1);
+   return `<div><b>${fmt(v)} g${g?` <span class="muted" style="font-weight:500">/ ${fmt(g)} g</span>`:''}</b><span>${lbl}${extra?' · '+extra:''}</span>${g?`<div class="progress mini ${ok?'':(v>g?'over':'under')}"><span style="width:${pct.toFixed(0)}%"></span></div>`:''}</div>`;};
+ return `<div class="macros">${cell('Eiweiß','p',Math.round(tot.p*4/e*100)+' % der Energie')}${cell('Kohlenhydrate','c',Math.round(tot.c*4/e*100)+' %')}${cell('Fett','f',Math.round(tot.f*9/e*100)+' %')}${cell('Ballaststoffe','b',+ng.b?'':'Richtwert 30 g')}${+ng.z?cell('Zucker','z','Obergrenze',true):''}</div>`;
+}
+function renderNgoal(){
+ const ng=S.ngoal||{};
+ $('#ngoalInputs').innerHTML=NG.map(([k,l,u,share,f])=>{const sug=k==='b'?30:k==='z'?Math.round(S.kcalGoal*0.1/4):Math.round(S.kcalGoal*share/f);
+   return `<div class="numin"><label class="lbl" for="ng-${k}">${l}</label><div class="box"><input type="number" id="ng-${k}" data-ng="${k}" min="0" max="600" step="5" value="${+ng[k]||''}" placeholder="z. B. ${sug}" inputmode="numeric"><span class="muted">g pro Tag</span></div></div>`;}).join('');
+ $('#ngoalBox').open=$('#ngoalBox').open||Object.values(ng).some(v=>+v);
+}
 function renderPlan(){
+ renderNgoal();
  $('#kGoal').value=S.kcalGoal;$('#kDev').checked=S.planDev;
  $('#kPresets').innerHTML=[1600,1800,2000,2200,2500,2800].map(k=>`<button type="button" data-k="${k}" aria-pressed="${S.kcalGoal===k}">${k.toLocaleString('de-DE')} kcal</button>`).join('');
  $('#kSlots').innerHTML=SLOTS.map(([id,l])=>`<button type="button" data-slot="${id}" aria-pressed="${S.planSlots.includes(id)}">${l}</button>`).join('');
@@ -1946,7 +2350,7 @@ function renderPlan(){
  sum.innerHTML=`<div class="planhead"><span><span class="big">${Math.round(tot.kcal).toLocaleString('de-DE')}</span> <span class="muted">von ${T.toLocaleString('de-DE')} kcal${eaten>0?' (Rest nach '+eaten.toLocaleString('de-DE')+' kcal)':''}</span></span>
    <span class="${cls?'warn':'small muted'}">${Math.abs(diff)<=T*0.05?'Passt – weniger als 5 % Abweichung':diff>0?`${Math.round(diff)} kcal über dem Ziel`:`${Math.round(-diff)} kcal unter dem Ziel`}</span></div>
   <div class="progress ${cls}" role="img" aria-label="${Math.round(tot.kcal/T*100)} % des Ziels geplant"><span style="width:${pct.toFixed(1)}%"></span></div>
-  <div class="macros"><div><b>${fmt(tot.p)} g</b><span>Eiweiß · ${Math.round(tot.p*4/e*100)} % der Energie</span></div><div><b>${fmt(tot.c)} g</b><span>Kohlenhydrate · ${Math.round(tot.c*4/e*100)} %</span></div><div><b>${fmt(tot.f)} g</b><span>Fett · ${Math.round(tot.f*9/e*100)} %</span></div><div><b>${fmt(tot.b)} g</b><span>Ballaststoffe · Richtwert 30 g</span></div></div>`;
+  ${macroCells(tot,e)}${Object.values(S.ngoal||{}).some(v=>+v)&&eaten>0?'<p class="small muted">Deine Nährwertziele sind anteilig auf den Rest des Tages umgerechnet.</p>':''}`;
  meals.innerHTML=items.map(it=>{
    const label=SLOTS.find(s=>s[0]===it.slot)[1];
    const port=it.type==='s'&&it.nut.pl?`${it.f>1?it.f+' × ':''}${it.nut.pl}`:portionTxt(it.f);
@@ -2078,6 +2482,7 @@ $('#gSearch').addEventListener('input',e=>{G.q=e.target.value;G.showAll=false;re
 for(const [id,key,num] of [['#gMeal','meal',false],['#gTime','max',true],['#gSort','sort',false]]){
  $(id).addEventListener('click',e=>{const b=e.target.closest('button[data-v]');if(!b)return;G[key]=num?+b.dataset.v:b.dataset.v;G.showAll=false;[...e.currentTarget.children].forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderAllRecipes();});
 }
+$('#gCu').addEventListener('click',e=>{const b=e.target.closest('[data-cu]');if(!b)return;G.cu=b.dataset.cu;G.showAll=false;renderAllRecipes();});
 $('#gOnlyDev').addEventListener('change',e=>{G.onlyDev=e.target.checked;renderAllRecipes();});
 $('#gMore').addEventListener('click',()=>{G.showAll=true;renderAllRecipes();});
 $('#agHint').addEventListener('click',e=>{if(e.target.closest('[data-goto]')){showTab('kueche');window.scrollTo({top:0});}});
@@ -2099,6 +2504,20 @@ $('#stockSum').addEventListener('click',e=>{const b=e.target.closest('[data-act]
  save();renderStock();});
 $('#p-einkauf').addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;const f=b.dataset.f;S.fresh=S.fresh.includes(f)?S.fresh.filter(x=>x!==f):[...S.fresh,f];b.setAttribute('aria-pressed',String(S.fresh.includes(f)));save();renderList();});
 $('#basketBtn').addEventListener('click',suggestBasket);
+$('#ngoalInputs').addEventListener('change',e=>{const i=e.target.closest('[data-ng]');if(!i)return;const v=Math.max(0,Math.round(+i.value||0));S.ngoal={...S.ngoal};if(v)S.ngoal[i.dataset.ng]=v;else delete S.ngoal[i.dataset.ng];makePlan();save();renderAll();});
+$('#ownNew').addEventListener('click',()=>openOwn(null));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(b){e.preventDefault();openOwn(b.dataset.edit);}});
+$('#ownClose').addEventListener('click',closeOwn);
+$('#ownSheet').addEventListener('keydown',e=>{if(e.key==='Escape')closeOwn();});
+$('#oAddIng').addEventListener('click',()=>{$('#oIngs').insertAdjacentHTML('beforeend',ingRowHTML());const rows=$('#oIngs').querySelectorAll('.iname');rows[rows.length-1].focus();updateOwnPreview();});
+$('#oIngs').addEventListener('input',updateOwnPreview);
+$('#oPor').addEventListener('input',updateOwnPreview);
+$('#oIngs').addEventListener('click',e=>{const b=e.target.closest('.ix');if(!b)return;b.closest('.irow').remove();updateOwnPreview();});
+$('#oAuto').addEventListener('click',e=>{if(e.target.closest('#oEst'))estimateUnknown();});
+$('#oMode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b)setOwnMode(b.dataset.m);});
+$('#oFill').addEventListener('click',()=>renderManGrid(ownAutoNut(readOwnIngs()).per));
+$('#oDel').addEventListener('click',()=>{if(!OWN.id)return;if(!OWN.delArm){OWN.delArm=true;$('#oDel').textContent='Wirklich löschen? Nochmal tippen';return;}S.own=S.own.filter(x=>x.id!==OWN.id);S.plan=null;save();registerOwn();closeOwn();renderAll();toast('Rezept gelöscht.');});
+$('#ownForm').addEventListener('submit',saveOwn);
 const setGoal=k=>{k=Math.round(+k||0);if(!k)return;const c=Math.min(4500,Math.max(1200,k));if(c!==k)toast('Bitte ein Ziel zwischen 1.200 und 4.500 kcal wählen.');S.kcalGoal=c;makePlan();save();renderAll();};
 $('#kGoal').addEventListener('change',e=>setGoal(e.target.value));
 $('#kEaten').addEventListener('change',()=>{makePlan();renderPlan();});
@@ -2238,6 +2657,7 @@ $('#snackForm').addEventListener('submit',e=>{e.preventDefault();genSnack($('#sn
 })();
 
 /* ============ START ============ */
+registerOwn();
 renderAll();
 showTab((location.hash||'').slice(1));
 if(!Array.isArray(savedDevices))openOnboard();
