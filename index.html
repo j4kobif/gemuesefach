@@ -210,6 +210,33 @@ textarea.fallback{width:100%;min-height:120px;border:1px solid var(--line);borde
 .sheet h2{font-size:26px;font-weight:800}
 .sheet-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
 
+/* Einkauf: ankreuzen statt abhaken */
+.havebtn{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 9px;font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap}
+.havebtn[aria-pressed="true"]{background:var(--surface-2);color:var(--green);border-color:var(--green)}
+.sitem.have:not(.on){background:var(--surface-2)}
+/* Stückangaben & Saftbar */
+.pc{display:block;font-size:12px;color:var(--ink-2);margin-top:1px}
+.kindtag{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green);background:var(--green-soft);padding:2px 7px;border-radius:5px}
+.tag-sugar{font-weight:700;font-size:12.5px;padding:2px 8px;border-radius:6px;background:var(--squash-soft);color:var(--squash)}
+/* Einkauf: Kosten & Haltbarkeit */
+.cols.rev .side{max-height:calc(100vh - 80px);overflow:auto}
+@media (max-width:860px){.cols.rev .side{max-height:none;overflow:visible}}
+.quick button[aria-pressed="true"] .dot{box-shadow:0 0 0 1.5px var(--green-ink)}
+.si{display:block;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.d1{background:var(--beet)}.d2{background:var(--squash)}.d3{background:var(--green)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center}
+.total{display:flex;align-items:baseline;justify-content:space-between;gap:10px;background:var(--surface-2);border-radius:10px;padding:10px 12px}
+.total b{font-family:var(--f-display);font-size:26px;font-variant-numeric:tabular-nums}
+.slist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.slist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 10px;font-size:14px}
+.slist .lp{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.slist .lm{grid-column:1/-1;font-size:12px;color:var(--ink-2)}
+.list h4{display:flex;align-items:center;gap:6px}
+.tips{margin:0;padding-left:18px;display:grid;gap:8px;font-size:14px;max-width:70ch}
+.tipbox{font-size:13.5px;background:var(--beet-soft);border-radius:10px;padding:8px 10px}
+.stocksum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+.stocksum b{font-variant-numeric:tabular-nums}
 /* Gerichte-Reiter */
 .ing.plain{border-color:var(--line);color:var(--ink)}
 .gctrls{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
@@ -281,6 +308,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
     <button role="tab" id="tab-kochen" aria-controls="p-kochen" aria-selected="true">Kochen</button>
     <button role="tab" id="tab-gerichte" aria-controls="p-gerichte" aria-selected="false">Gerichte</button>
     <button role="tab" id="tab-snacks" aria-controls="p-snacks" aria-selected="false">Snacks</button>
+    <button role="tab" id="tab-saftbar" aria-controls="p-saftbar" aria-selected="false">Saftbar</button>
     <button role="tab" id="tab-einkauf" aria-controls="p-einkauf" aria-selected="false">Einkauf</button>
     <button role="tab" id="tab-naehrwerte" aria-controls="p-naehrwerte" aria-selected="false">Nährwerte</button>
     <button role="tab" id="tab-kueche" aria-controls="p-kueche" aria-selected="false">Meine Küche</button>
@@ -421,24 +449,53 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
     <div class="grid" id="snackGrid"></div>
   </section>
 
+  <!-- SAFTBAR -->
+  <section id="p-saftbar" role="tabpanel" aria-labelledby="tab-saftbar" hidden>
+    <div style="display:grid;gap:16px">
+      <div style="display:grid;gap:6px;max-width:66ch">
+        <h2 style="font-size:24px">Saftbar</h2>
+        <p class="muted">Smoothies, Säfte, warme Getränke und Erfrischungen ohne zugesetzten Zucker. Für den Durst sind Wasser und ungesüßter Tee am besten. Säfte lieber verdünnt trinken oder als Smoothie, dann bleiben die Ballaststoffe drin.</p>
+      </div>
+      <div class="quick" id="drinkKinds"></div>
+      <div class="grid" id="drinkGrid"></div>
+    </div>
+  </section>
+
   <!-- EINKAUF -->
   <section id="p-einkauf" role="tabpanel" aria-labelledby="tab-einkauf" hidden>
     <div class="cols rev">
       <div style="display:grid;gap:26px;min-width:0">
         <div style="display:grid;gap:6px;max-width:66ch">
           <h2 style="font-size:24px">Grundvorrat</h2>
-          <p class="muted">Diese Produkte decken die meisten Gerichte ab. Hake ab, was du schon da hast. Abgehakte Produkte zählen beim Kochen als vorhanden, der Rest landet auf deiner Einkaufsliste.</p>
+          <p class="muted">Diese Produkte decken die meisten Gerichte ab. Kreuze an, was du kaufen möchtest – nur das landet auf deiner Einkaufsliste. Mit „Hab ich“ markierst du, was schon im Schrank steht; das zählt beim Kochen als vorhanden.</p>
         </div>
+        <div class="panel stocksum" id="stockSum"></div>
         <div class="stock-groups" id="stockGroups"></div>
         <div class="season panel">
-          <div class="rowline"><h3 style="font-size:19px" id="seasonTitle">Frisch im Oktober</h3><span class="small muted">Tippen = auf die Liste</span></div>
-          <p class="small muted">Saisonal aus Deutschland (Freiland und Lager, Richtwerte). Saisonal ist meist günstiger und aromatischer.</p>
+          <div class="rowline"><h3 style="font-size:19px" id="seasonTitle">Frisch im Oktober</h3><button type="button" class="ghost" id="basketBtn">Wochenkorb vorschlagen</button></div>
+          <p class="small muted">Saisonal aus Deutschland (Freiland und Lager, Richtwerte). Saisonal ist meist günstiger und aromatischer. Tippen setzt es auf die Liste.</p>
+          <p class="small muted legend"><span>Haltbarkeit:</span><span><i class="dot d1"></i>1–3 Tage</span><span><i class="dot d2"></i>bis 1 Woche</span><span><i class="dot d3"></i>länger als 1 Woche</span></p>
           <span class="lbl">Gemüse</span>
           <div class="quick" id="seasonVeg"></div>
           <span class="lbl">Obst</span>
           <div class="quick" id="seasonFruit"></div>
           <span class="lbl">Ganzjährig sinnvoll</span>
           <div class="quick" id="seasonAlways"></div>
+        </div>
+        <div class="panel" style="display:grid;gap:10px">
+          <h3 style="font-size:19px">Lagern &amp; sparen</h3>
+          <ol class="tips">
+            <li><b>Reihenfolge planen:</b> Blattsalat, Beeren und frischen Spinat in den ersten 1–3 Tagen essen, Brokkoli, Tomaten und Paprika bis zur Wochenmitte, Kohl, Wurzelgemüse, Kürbis und Äpfel zum Wochenende.</li>
+            <li><b>Tiefkühlware nutzen:</b> TK-Gemüse und TK-Beeren werden kurz nach der Ernte gefroren, behalten viele Vitamine, sind oft günstiger und verderben nicht.</li>
+            <li><b>Groß kaufen, was lange hält:</b> Haferflocken, Reis, Linsen und Konserven lohnen sich in größeren Packungen. Vergleiche den Grundpreis pro Kilo.</li>
+            <li><b>Hülsenfrüchte trocken kaufen:</b> pro Portion meist deutlich günstiger als aus der Dose. Rote Linsen brauchen nicht einmal Einweichen.</li>
+            <li><b>MHD ist kein Wegwerfdatum:</b> Trockenwaren und Konserven sind oft lange darüber hinaus gut – anschauen, riechen, probieren. Beim Verbrauchsdatum („zu verbrauchen bis“) dagegen nicht.</li>
+            <li><b>Fettreiches kühl lagern:</b> Nüsse, Leinsamen und Vollkornprodukte werden ranzig. Angebrochen am besten in den Kühlschrank oder Tiefkühler.</li>
+            <li><b>Getrennt lagern:</b> Äpfel und Bananen geben Ethylen ab und lassen anderes Obst und Gemüse schneller reifen. Kartoffeln und Zwiebeln ebenfalls getrennt, kühl und dunkel.</li>
+            <li><b>Reste retten:</b> Brot scheibenweise einfrieren, überreife Bananen für Pancakes, Baked Oats oder Nicecream, welkes Gemüse in Suppe oder Ofengemüse.</li>
+            <li><b>Eigenmarken und Angebote:</b> Discounter-Eigenmarken sind meist günstiger als Markenware, saisonales Gemüse günstiger als Importware.</li>
+          </ol>
+          <p class="small muted">Preise sind grobe Schätzungen für Discounter-Eigenmarken in Deutschland (Stand 2026) und schwanken je nach Laden, Region, Saison und Angebot.</p>
         </div>
       </div>
       <aside class="side">
@@ -456,7 +513,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
         </div>
         <div class="panel list" style="display:grid;gap:8px">
           <div class="rowline"><h3 style="font-size:19px">Einkaufsliste <span class="muted" id="listCount"></span></h3></div>
-          <label class="check"><input type="checkbox" id="listStaples" checked><span>Fehlenden Grundvorrat aufnehmen</span></label>
+          <div class="total"><span class="small muted" id="totalLbl">Geschätzte Kosten</span><b id="listTotal">0 €</b></div>
           <div id="shopList"></div>
           <div class="rowline">
             <button class="btn" type="button" id="copyList">Liste kopieren</button>
@@ -473,7 +530,7 @@ footer{margin-top:40px;border-top:1px solid var(--line);padding-top:16px;font-si
     <div style="display:grid;gap:16px">
       <div style="display:grid;gap:6px;max-width:68ch">
         <h2 style="font-size:24px">Nährwerte der Zutaten</h2>
-        <p class="muted">Durchschnittswerte pro 100 g, Energie in kcal, alles andere in Gramm. Im veganen Modus siehst du die Werte der pflanzlichen Alternativen. Tippe auf eine Spaltenüberschrift, um zu sortieren.</p>
+        <p class="muted">Alle Werte immer pro 100 g – Energie in kcal, alles andere in Gramm. Bei Obst, Gemüse und Stückware steht darunter, wie viel Stück ungefähr 100 g sind. Im veganen Modus siehst du die Werte der pflanzlichen Alternativen. Tippe auf eine Spaltenüberschrift, um zu sortieren.</p>
       </div>
       <div style="display:grid;gap:10px">
         <input id="nwSearch" class="search" placeholder="Zutat suchen, z. B. Linsen" aria-label="Zutat suchen">
@@ -1156,7 +1213,8 @@ curry:[14,25,3,14,33],kreuzkuemmel:[18,34,2,22,11],paprikapulver:[14,19,10,13,35
 kurkuma:[10,44,3,3,21],
 basilikum:[3.2,1,0.3,0.6,1.6],petersilie:[3,1.5,0.9,0.8,3.3],koriander:[2.1,0.9,0.9,0.5,2.8],schnittlauch:[3.3,1.9,1.9,0.7,2.5],
 minze:[3.8,6.9,0,0.9,8],
-oel:[0,0,0,100,0]
+oel:[0,0,0,100,0],
+apfelsaft:[0.1,10.5,10,0.1,0.2]
 };
 /* Werte der veganen Alternativen (Haferdrink, Sojajoghurt, Pflanzenkäse …) */
 const NUTV={feta:[0.5,20,0,22,0],mozzarella:[1,20,0,21,0],parmesan:[50,12,1,5,20],kaese:[0.5,21,0,23,0],joghurt:[4,1.5,0.5,2.3,1],
@@ -1261,6 +1319,161 @@ apfelchips:[[300,2],2],
 schokofruechte:[[50,250,10],3]
 };
 
+/* Grundvorrat: Packung, Preis (€, Discounter-Eigenmarke, Schätzung 2026), haltbar geschlossen, nach dem Öffnen, Lagerort; Varianten v=pflanzlich, gf=glutenfrei, lf=laktosefrei, sf=sojafrei */
+const SHOP={
+haferflocken:{p:'500 g',e:0.89,h:'12 Monate',o:'3 Monate, luftdicht',l:'Vorratsschrank',gf:['glutenfrei, 500 g',2.49]},
+reis:{p:'1 kg, Vollkorn',e:2.29,h:'12 Monate',o:'6 Monate (Vollkorn wird sonst ranzig)',l:'Vorratsschrank'},
+nudeln:{p:'500 g, Vollkorn',e:1.09,h:'2 Jahre',o:'1 Jahr',l:'Vorratsschrank',gf:['glutenfrei, 500 g',2.29]},
+bulgur:{p:'500 g',e:1.49,h:'12 Monate',o:'6 Monate',l:'Vorratsschrank',gf:['Quinoa, 500 g',2.99]},
+rote_linsen:{p:'500 g',e:1.79,h:'2 Jahre',o:'1 Jahr',l:'Vorratsschrank'},
+linsen:{p:'500 g',e:1.69,h:'2 Jahre',o:'1 Jahr',l:'Vorratsschrank'},
+tortilla:{p:'6 Stück',e:1.29,h:'6–8 Wochen',o:'5 Tage, einfrierbar',l:'Vorratsschrank',gf:['Mais-Tortillas, 8 Stück',2.19]},
+kichererbsen:{p:'Dose, 400 g',e:0.85,h:'2–3 Jahre',o:'3 Tage, umgefüllt im Kühlschrank',l:'Vorratsschrank'},
+kidneybohnen:{p:'Dose, 400 g',e:0.85,h:'2–3 Jahre',o:'3 Tage, umgefüllt im Kühlschrank',l:'Vorratsschrank'},
+dosentomaten:{p:'Dose, 400 g',e:0.69,h:'2 Jahre',o:'3 Tage, umgefüllt im Kühlschrank',l:'Vorratsschrank'},
+kokosmilch:{p:'Dose, 400 ml',e:1.39,h:'2 Jahre',o:'3 Tage, umgefüllt im Kühlschrank',l:'Vorratsschrank'},
+tomatenmark:{p:'Tube, 200 g',e:1.19,h:'18 Monate',o:'4 Wochen im Kühlschrank',l:'Vorratsschrank'},
+bruehe:{p:'Glas Pulver, ergibt ca. 10 l',e:2.19,h:'18 Monate',o:'12 Monate, trocken',l:'Vorratsschrank'},
+sojasauce:{p:'Flasche, 500 ml',e:2.29,h:'2 Jahre',o:'12 Monate',l:'Vorratsschrank',gf:['Tamari, 250 ml',3.49],sf:['Kokos-Aminos, 250 ml',5.99]},
+curry:{p:'Streudose, 50 g',e:1.29,h:'2 Jahre',o:'12 Monate volles Aroma',l:'Gewürzregal, dunkel'},
+kreuzkuemmel:{p:'Streudose, 40 g',e:1.49,h:'2 Jahre',o:'12 Monate volles Aroma',l:'Gewürzregal, dunkel'},
+paprikapulver:{p:'Streudose, 50 g',e:1.19,h:'2 Jahre',o:'12 Monate volles Aroma',l:'Gewürzregal, dunkel'},
+oregano:{p:'Streudose, 15 g',e:0.99,h:'2 Jahre',o:'12 Monate volles Aroma',l:'Gewürzregal, dunkel'},
+zimt:{p:'Streudose, 50 g',e:0.99,h:'2 Jahre',o:'12 Monate volles Aroma',l:'Gewürzregal, dunkel'},
+senf:{p:'Tube, 200 ml',e:0.79,h:'12 Monate',o:'4 Monate im Kühlschrank',l:'Vorratsschrank'},
+essig:{p:'Balsamico, 500 ml',e:1.69,h:'praktisch unbegrenzt',o:'praktisch unbegrenzt',l:'Vorratsschrank'},
+nuesse:{p:'Walnusskerne, 200 g',e:3.29,h:'9 Monate',o:'3 Monate, besser im Kühlschrank',l:'kühl und dunkel'},
+kerne:{p:'Kürbiskerne, 200 g',e:2.29,h:'9 Monate',o:'3 Monate',l:'kühl und dunkel'},
+leinsamen:{p:'geschrotet, 500 g',e:1.39,h:'12 Monate',o:'1 Monat, im Kühlschrank länger',l:'kühl und dunkel'},
+erdnussmus:{p:'100 % Erdnuss, 350 g',e:2.49,h:'12 Monate',o:'3 Monate',l:'Vorratsschrank'},
+tahini:{p:'Glas, 300 g',e:3.29,h:'12 Monate',o:'3 Monate',l:'Vorratsschrank'},
+kakao:{p:'ungesüßt, 250 g',e:2.79,h:'2 Jahre',o:'12 Monate',l:'Vorratsschrank'},
+datteln:{p:'getrocknet, 200 g',e:2.19,h:'12 Monate',o:'3 Monate, gut verschlossen',l:'Vorratsschrank'},
+zwiebel:{p:'Netz, 2 kg',e:2.29,h:'1–2 Monate',o:'angeschnitten 3 Tage im Kühlschrank',l:'kühl, dunkel, nicht im Kühlschrank'},
+knoblauch:{p:'3 Knollen',e:1.19,h:'4–6 Wochen',o:'geschälte Zehen 1 Woche',l:'kühl und dunkel'},
+zitrone:{p:'Netz, 500 g',e:1.49,h:'2–3 Wochen',o:'angeschnitten 3 Tage',l:'Kühlschrank'},
+karotte:{p:'1 kg',e:1.19,h:'3–4 Wochen',o:'–',l:'Kühlschrank, Gemüsefach'},
+kartoffel:{p:'2,5 kg',e:3.29,h:'1–2 Monate',o:'–',l:'kühl, dunkel, nicht im Kühlschrank'},
+tofu:{p:'400 g',e:2.49,h:'4–8 Wochen (MHD)',o:'3–4 Tage in Wasser im Kühlschrank',l:'Kühlschrank'},
+joghurt:{p:'500 g',e:0.99,h:'3 Wochen (MHD)',o:'4–5 Tage',l:'Kühlschrank',v:['Sojajoghurt, 500 g',1.69],lf:['laktosefrei, 500 g',1.39],sf:['Haferjoghurt, 400 g',1.99]},
+feta:{p:'200 g',e:1.69,h:'4–8 Wochen (MHD)',o:'5–7 Tage in Lake',l:'Kühlschrank',v:['Vegan-Feta, 200 g',2.79],lf:['laktosefrei, 200 g',2.29]},
+eier:{p:'10 Stück, Freiland',e:3.29,h:'28 Tage ab Legedatum',o:'–',l:'Kühlschrank'},
+milch:{p:'H-Milch, 1 l',e:1.15,h:'3 Monate',o:'3–4 Tage',l:'Vorratsschrank, offen in den Kühlschrank',v:['Haferdrink, 1 l',1.19],lf:['laktosefrei, 1 l',1.39]},
+spinat:{p:'TK, 450 g',e:1.39,h:'12 Monate',o:'–',l:'Tiefkühler'},
+erbsen:{p:'TK, 750 g',e:1.99,h:'12 Monate',o:'–',l:'Tiefkühler'},
+beeren:{p:'TK-Mix, 750 g',e:3.79,h:'12 Monate',o:'–',l:'Tiefkühler'},
+edamame:{p:'TK, 500 g',e:2.99,h:'12 Monate',o:'–',l:'Tiefkühler'},
+brot:{p:'Vollkornbrot, 500 g',e:1.49,h:'7–10 Tage, eingefroren 3 Monate',o:'–',l:'Brotkasten oder Tiefkühler',gf:['glutenfrei, 500 g',3.49]}
+};
+/* Frischware: Packung, Preis (€), Haltbarkeit, Lagerort, Tage (für die Reihenfolge) */
+const FRESH={
+'Grünkohl':['500 g',2.49,'3–5 Tage','Kühlschrank',4],'Rosenkohl':['500 g',1.99,'3–5 Tage','Kühlschrank',4],
+'Lauch':['1 Stange',0.79,'1 Woche','Kühlschrank',7],'Feldsalat':['150 g',1.49,'2–3 Tage','Kühlschrank',2],
+'Rotkohl':['1 Kopf, ca. 1 kg',1.29,'3–4 Wochen','Kühlschrank',25],'Weißkohl':['1 Kopf, ca. 1 kg',1.19,'3–4 Wochen','Kühlschrank',25],
+'Wirsing':['1 Kopf',1.49,'1–2 Wochen','Kühlschrank',10],'Pastinaken':['500 g',1.79,'2–3 Wochen','Kühlschrank',18],
+'Schwarzwurzeln':['500 g',2.99,'1 Woche','Kühlschrank',7],'Rote Bete':['500 g',1.29,'2–3 Wochen','Kühlschrank',18],
+'Karotten':['1 kg',1.19,'3–4 Wochen','Kühlschrank',25],'Topinambur':['500 g',2.99,'1 Woche','Kühlschrank',7],
+'Chicorée':['500 g',1.99,'1 Woche','Kühlschrank, dunkel',7],'Bärlauch':['100 g',1.99,'2–3 Tage','Kühlschrank',2],
+'Spinat':['250 g',1.79,'1–2 Tage','Kühlschrank',2],'Radieschen':['1 Bund',0.89,'4–5 Tage, ohne Blätter','Kühlschrank',5],
+'Frühlingszwiebeln':['1 Bund',0.69,'1 Woche','Kühlschrank',7],'Rucola':['125 g',1.29,'2–3 Tage','Kühlschrank',2],
+'Rhabarber':['500 g',2.49,'4–5 Tage','Kühlschrank',5],'Spargel':['500 g',4.99,'2–3 Tage, in feuchtem Tuch','Kühlschrank',3],
+'Kohlrabi':['1 Stück',0.69,'1 Woche','Kühlschrank',7],'Kopfsalat':['1 Kopf',0.99,'2–3 Tage','Kühlschrank',3],
+'Mangold':['500 g',2.49,'2–3 Tage','Kühlschrank',3],'Erdbeeren':['500 g',2.99,'1–2 Tage','Kühlschrank',2],
+'Zucchini':['500 g',1.49,'1 Woche','Kühlschrank',7],'Erbsen':['500 g, in der Schote',2.99,'2 Tage','Kühlschrank',2],
+'Brokkoli':['500 g',1.49,'3–5 Tage','Kühlschrank',4],'Blumenkohl':['1 Kopf',1.99,'4–5 Tage','Kühlschrank',5],
+'Gurken':['1 Stück',0.69,'1 Woche','kühl, nicht unter 10 °C',7],'Kirschen':['500 g',3.49,'2–3 Tage','Kühlschrank',3],
+'Johannisbeeren':['250 g',2.49,'2–3 Tage','Kühlschrank',3],'Stachelbeeren':['250 g',2.49,'3–4 Tage','Kühlschrank',4],
+'Tomaten':['500 g',1.99,'1 Woche','Zimmertemperatur, nicht im Kühlschrank',7],'Bohnen':['500 g',2.49,'2–3 Tage','Kühlschrank',3],
+'Fenchel':['1 Knolle',0.99,'1 Woche','Kühlschrank',7],'Paprika':['500 g',2.29,'1 Woche','Kühlschrank',7],
+'Himbeeren':['125 g',1.99,'1–2 Tage','Kühlschrank',2],'Heidelbeeren':['250 g',2.49,'4–5 Tage','Kühlschrank',5],
+'Aprikosen':['500 g',2.99,'3–4 Tage','reif in den Kühlschrank',4],'Aubergine':['1 Stück',0.99,'4–5 Tage','kühl',5],
+'Mais':['2 Kolben',1.49,'2 Tage','Kühlschrank',2],'Zwetschgen':['1 kg',2.49,'4–5 Tage','Kühlschrank',5],
+'Pflaumen':['1 kg',2.49,'4–5 Tage','Kühlschrank',5],'Brombeeren':['125 g',1.99,'1–2 Tage','Kühlschrank',2],
+'Frühe Äpfel':['1 kg',2.29,'1–2 Wochen','Kühlschrank',10],'Birnen':['1 kg',2.49,'1 Woche','kühl',7],
+'Kürbis':['1 Hokkaido, ca. 1,2 kg',2.49,'2–3 Monate ganz, angeschnitten 4 Tage','kühl und trocken',60],
+'Äpfel':['1 kg',2.29,'2–4 Wochen, kühl länger','Kühlschrank oder kühler Keller',21],'Trauben':['500 g',2.49,'4–5 Tage','Kühlschrank',5],
+'Quitten':['1 kg',3.49,'2–3 Wochen','kühl',18],'Äpfel (Lager)':['1 kg',2.29,'2–4 Wochen','Kühlschrank oder kühler Keller',21],
+'Birnen (Lager)':['1 kg',2.49,'1 Woche','kühl',7],'Bananen':['1 kg',1.39,'5–7 Tage','Zimmertemperatur, getrennt von anderem Obst',6],
+'Zitronen':['Netz, 500 g',1.49,'2–3 Wochen','Kühlschrank',18],'Zwiebeln':['Netz, 2 kg',2.29,'1–2 Monate','kühl und dunkel',45],
+'Knoblauch':['3 Knollen',1.19,'4–6 Wochen','kühl und dunkel',35],'TK-Beeren':['750 g',3.79,'12 Monate','Tiefkühler',365],
+'TK-Spinat':['450 g',1.39,'12 Monate','Tiefkühler',365]
+};
+/* Stückgewichte: [g pro Einheit, Einheit Singular, Plural] – Durchschnittswerte, essbarer Anteil */
+const PIECE={
+tomate:[80,'Tomate','Tomaten'],paprika:[160,'Paprika','Paprika'],zucchini:[250,'Zucchini','Zucchini'],aubergine:[300,'Aubergine','Auberginen'],
+brokkoli:[450,'Kopf','Köpfe'],blumenkohl:[700,'Kopf','Köpfe'],karotte:[80,'Karotte','Karotten'],zwiebel:[80,'Zwiebel','Zwiebeln'],
+knoblauch:[4,'Zehe','Zehen'],kartoffel:[100,'Kartoffel','Kartoffeln'],suesskartoffel:[300,'Süßkartoffel','Süßkartoffeln'],
+kuerbis:[1200,'Hokkaido','Hokkaidos'],pilze:[20,'Champignon','Champignons'],lauch:[250,'Stange','Stangen'],gurke:[400,'Gurke','Gurken'],
+salat:[300,'Kopf','Köpfe'],rucola:[20,'Handvoll','Handvoll'],spinat:[30,'Handvoll','Handvoll'],weisskohl:[1000,'Kopf','Köpfe'],
+rotkohl:[1000,'Kopf','Köpfe'],rote_bete:[150,'Knolle','Knollen'],avocado:[150,'Avocado','Avocados'],fruehlingszwiebel:[15,'Stange','Stangen'],
+ingwer:[20,'daumengroßes Stück','daumengroße Stücke'],chili:[10,'Schote','Schoten'],sellerie:[50,'Stange','Stangen'],fenchel:[250,'Knolle','Knollen'],
+gruenkohl:[30,'Handvoll','Handvoll'],rosenkohl:[15,'Röschen','Röschen'],pastinake:[150,'Pastinake','Pastinaken'],radieschen:[15,'Radieschen','Radieschen'],
+banane:[120,'Banane','Bananen'],apfel:[150,'Apfel','Äpfel'],birne:[160,'Birne','Birnen'],beeren:[80,'Handvoll','Handvoll'],
+zitrone:[100,'Zitrone','Zitronen'],limette:[60,'Limette','Limetten'],orange:[150,'Orange','Orangen'],mango:[300,'Mango','Mangos'],
+datteln:[8,'Dattel','Datteln'],eier:[60,'Ei','Eier'],tortilla:[60,'Wrap','Wraps'],brot:[50,'Scheibe','Scheiben'],
+kichererbsen:[240,'Dose','Dosen'],kidneybohnen:[240,'Dose','Dosen'],schwarze_bohnen:[240,'Dose','Dosen'],weisse_bohnen:[240,'Dose','Dosen'],
+dosentomaten:[400,'Dose','Dosen'],kokosmilch:[400,'Dose','Dosen'],tofu:[200,'Packung','Packungen'],raeuchertofu:[200,'Packung','Packungen'],
+feta:[200,'Packung','Packungen'],mozzarella:[125,'Kugel','Kugeln'],halloumi:[225,'Packung','Packungen'],lasagne:[20,'Platte','Platten'],
+nuesse:[25,'Handvoll','Handvoll'],haselnuesse:[25,'Handvoll','Handvoll'],cashews:[25,'Handvoll','Handvoll'],kerne:[10,'EL','EL'],
+chiasamen:[12,'EL','EL'],leinsamen:[10,'EL','EL'],erdnussmus:[15,'EL','EL'],tahini:[15,'EL','EL'],haferflocken:[10,'EL','EL'],
+kakao:[8,'EL','EL'],honig:[20,'EL','EL'],ahornsirup:[20,'EL','EL'],sojasauce:[15,'EL','EL'],senf:[5,'TL','TL'],tomatenmark:[15,'EL','EL'],
+currypaste:[15,'EL','EL'],miso:[18,'EL','EL'],pesto:[15,'EL','EL'],zartbitter:[5,'Stück','Stück'],quark:[250,'Becher','Becher'],
+milch:[200,'Glas','Gläser'],sahne:[200,'Becher','Becher'],butter:[15,'EL','EL'],parmesan:[5,'EL gerieben','EL gerieben'],kaese:[25,'Scheibe','Scheiben'],
+curry:[2,'TL','TL'],kreuzkuemmel:[2,'TL','TL'],paprikapulver:[2,'TL','TL'],zimt:[2,'TL','TL'],oregano:[1,'TL','TL'],kurkuma:[3,'TL','TL'],
+basilikum:[30,'Bund','Bund'],petersilie:[30,'Bund','Bund'],koriander:[30,'Bund','Bund'],schnittlauch:[25,'Bund','Bund'],minze:[20,'Bund','Bund'],
+backpulver:[15,'Päckchen','Päckchen'],gnocchi:[500,'Packung','Packungen'],joghurt:[150,'Becher (klein)','Becher (klein)']
+};
+const fmtCount=n=>{if(n<2){const r=Math.round(n*2)/2;const w=Math.floor(r);return (w?w:'')+(r%1?'½':'')||'½';}return String(Math.round(n));};
+const pcs=(id,g)=>{const p=PIECE[id];if(!p||!g)return '';const n=g/p[0];if(n<0.4||n>40)return '';const r=n<2?Math.max(0.5,Math.round(n*2)/2):Math.round(n);return ` (≈ ${fmtCount(n)} ${r>1?p[2]:p[1]})`;};
+const per100=id=>{const p=PIECE[id];if(!p)return '';const n=100/p[0];const c=n>=10?String(Math.round(n)):String(Math.round(n*10)/10).replace('.',',');return `100 g ≈ ${c} ${n>1.25?p[2]:p[1]} · 1 ${p[1]} ≈ ${p[0]} g`;};
+/* Saftbar */
+const DRINKS=[
+{id:'beerensmoothie',n:'Beeren-Hafer-Smoothie',k:'Smoothie',why:'Sättigt wie ein kleines Frühstück: Ballaststoffe aus Hafer und ganzen Beeren.',m:[['puree',5]],
+ ing:[['150 g','TK-Beeren','beeren'],['1','Banane','banane'],['3 EL','Haferflocken','haferflocken'],['250 ml','Milch','milch']],gq:[150,120,25,250],por:2,
+ s:['Alles in den Mixer geben.','Fein pürieren, bei Bedarf mit etwas Wasser verdünnen.'],tip:'Mit TK-Beeren wird er schön kalt, ganz ohne Eiswürfel.'},
+{id:'gruensmoothie',n:'Grüner Apfel-Spinat-Smoothie',k:'Smoothie',why:'Zwei Handvoll Blattgrün, die man kaum schmeckt.',m:[['puree',5]],
+ ing:[['2 Handvoll','Babyspinat','spinat'],['1','Apfel','apfel'],['1','Banane','banane'],['½','Zitrone (Saft)','zitrone'],['1 Scheibe','Ingwer','ingwer'],['200 ml','Wasser']],gq:[60,150,120,30,5,0],por:2,
+ s:['Apfel entkernen und grob schneiden.','Mit allen anderen Zutaten fein pürieren.'],tip:'Der Zitronensaft hält die Farbe frisch grün.'},
+{id:'lassi',n:'Mango-Lassi',k:'Shake',rep:'Fruchtjoghurt-Drink',why:'Cremig und fruchtig, die Süße kommt nur aus der Mango.',m:[['puree',5]],
+ ing:[['200 g','Mango (frisch oder TK)','mango'],['250 g','Joghurt','joghurt'],['100 ml','kaltes Wasser'],['½','Limette (Saft)','limette'],['1 Prise','Kardamom']],gq:[200,250,0,15,0],por:2,
+ s:['Mango würfeln.','Mit Joghurt, Wasser und Limettensaft cremig mixen, mit Kardamom abschmecken.'],tip:'Reife Mangos duften am Stielansatz süß.'},
+{id:'avocadoshake',n:'Avocado-Protein-Smoothie',k:'Shake',why:'Gute Fette, Eiweiß und Hafer – hält lange satt.',m:[['puree',5]],
+ ing:[['½','Avocado','avocado'],['1 Handvoll','Spinat','spinat'],['1','Banane','banane'],['250 ml','Milch','milch'],['2 EL','Haferflocken','haferflocken']],gq:[75,30,120,250,20],por:2,
+ s:['Avocado auslöffeln.','Alles zusammen glatt mixen.'],tip:'Mit einer gefrorenen Banane wird er dicker, fast wie ein Milchshake.'},
+{id:'schokoshake',n:'Schoko-Bananen-Shake',k:'Shake',rep:'Fertig-Schokomilch',why:'Schmeckt nach Schoko, gesüßt wird nur mit der Banane.',m:[['puree',5]],
+ ing:[['1','gefrorene Banane','banane'],['1 EL','Kakao (ungesüßt)','kakao'],['1 EL','Erdnussmus','erdnussmus'],['300 ml','Milch','milch']],gq:[120,8,15,300],por:1,
+ s:['Banane in Stücken einfrieren (am Vortag).','Mit Kakao, Erdnussmus und Milch cremig mixen.'],tip:'Überreife Bananen eignen sich am besten – sie sind am süßesten.'},
+{id:'karottensaft',n:'Karotten-Orangen-Ingwer-Saft',k:'Saft',why:'Frisch gepresst mit viel Beta-Carotin.',m:[['blend',10,'Im Mixer pürieren und durch ein feines Sieb oder einen Nussmilchbeutel drücken. Mit Entsafter geht es schneller.']],
+ ing:[['300 g','Karotten','karotte'],['2','Orangen','orange'],['1 Stück (ca. 10 g)','Ingwer','ingwer'],['150 ml','Wasser']],gq:[300,300,10,0],por:2,
+ s:['Karotten grob schneiden, Orangen schälen.','Mit Ingwer und Wasser sehr fein pürieren.','Durch ein Sieb drücken und sofort trinken.'],tip:'Ohne Absieben wird es ein Smoothie mit allen Ballaststoffen. Den Trester kannst du in Suppe oder Puffer geben.'},
+{id:'rotebetesaft',n:'Rote-Bete-Apfel-Saft',k:'Saft',why:'Erdig-süß und knallig pink.',m:[['blend',10,'Im Mixer pürieren und durch ein feines Sieb drücken. Mit Entsafter geht es schneller.']],
+ ing:[['1 Knolle','Rote Bete (roh)','rote_bete'],['2','Äpfel','apfel'],['½','Zitrone (Saft)','zitrone'],['1 Scheibe','Ingwer','ingwer'],['150 ml','Wasser']],gq:[150,300,30,5,0],por:2,
+ s:['Rote Bete schälen (Handschuhe!), Äpfel entkernen.','Alles mit Wasser fein pürieren und absieben.'],tip:'Rote Bete färbt stark – Brett und Hände gleich abspülen.'},
+{id:'goldenmilk',n:'Goldene Milch',k:'Warm',rep:'Kakao mit Zucker',why:'Wärmend mit Kurkuma und Ingwer, gesüßt höchstens mit einer Dattel.',m:[['herd',5],['mikrowelle',3]],
+ ing:[['300 ml','Milch','milch'],['1 TL','Kurkuma','kurkuma'],['½ TL','Zimt','zimt'],['1 Scheibe','Ingwer','ingwer'],['1 Prise','schwarzer Pfeffer'],['1, optional','Dattel','datteln']],gq:[300,3,1,5,0,8],por:1,
+ s:['Milch mit Gewürzen und Ingwer erhitzen, nicht kochen lassen.','Optional eine fein gehackte Dattel mitziehen lassen, dann mit dem Stabmixer aufschäumen oder durch ein Sieb gießen.'],tip:'Der Pfeffer hilft, die Inhaltsstoffe der Kurkuma besser aufzunehmen.'},
+{id:'chai',n:'Chai-Latte ohne Zucker',k:'Warm',rep:'Chai mit Sirup',why:'Würzig wie im Café, ohne den süßen Sirup.',m:[['herd',8]],
+ ing:[['250 ml','Milch','milch'],['1 Beutel','Schwarztee'],['½ TL','Zimt','zimt'],['1 Scheibe','Ingwer','ingwer'],['1, optional','Dattel','datteln']],gq:[250,0,1,5,8],por:1,
+ s:['Milch mit Zimt, Ingwer und Dattel erhitzen.','Teebeutel 4 Min. darin ziehen lassen, herausnehmen und aufschäumen.'],tip:'Mit Kardamom und Nelken wird er noch würziger.'},
+{id:'ingwertee',n:'Ingwer-Zitronen-Tee',k:'Warm',why:'Wärmt von innen, ganz ohne Zucker.',m:[['wasserkocher',10],['herd',10]],
+ ing:[['1 daumengroßes Stück','Ingwer','ingwer'],['½','Zitrone','zitrone'],['500 ml','heißes Wasser'],['ein paar Blätter','Minze, optional','minze']],gq:[20,30,0,2],por:2,
+ s:['Ingwer in Scheiben schneiden (Schale darf dranbleiben).','Mit kochendem Wasser übergießen und 8–10 Min. ziehen lassen.','Zitronensaft und Minze dazugeben.'],tip:'Je länger er zieht, desto schärfer wird er.'},
+{id:'infused',n:'Gurke-Minze-Wasser',k:'Erfrischung',rep:'Limonade',why:'Schmeckt nach etwas und hat praktisch keine Kalorien.',m:[['',5,'Mindestens 30 Min. im Kühlschrank ziehen lassen.']],
+ ing:[['¼','Gurke','gurke'],['½','Zitrone','zitrone'],['5 Stiele','Minze','minze'],['1 l','kaltes Wasser']],gq:[100,30,5,0],por:4,
+ s:['Gurke und Zitrone in dünne Scheiben schneiden.','Mit Minze in eine Karaffe geben, mit Wasser auffüllen und kalt stellen.'],tip:'Am selben Tag trinken; Wasser lässt sich 1–2 Mal nachfüllen.'},
+{id:'eistee',n:'Eistee ohne Zucker',k:'Erfrischung',rep:'Gekaufter Eistee',why:'Fruchtig und kalt – gekaufter Eistee ist meist stark gezuckert.',m:[['wasserkocher',10,'Danach mindestens 1 Std. kühlen.'],['herd',10,'Danach mindestens 1 Std. kühlen.']],
+ ing:[['3 Beutel','Früchtetee oder grüner Tee'],['1 l','Wasser'],['1','Zitrone','zitrone'],['einige Stiele','Minze','minze'],['1 Handvoll','Beeren','beeren']],gq:[0,0,50,5,80],por:4,
+ s:['Tee mit heißem Wasser aufgießen und ziehen lassen (grüner Tee mit 80 °C, 2–3 Min.).','Abkühlen lassen, Zitronenscheiben, Minze und Beeren dazugeben.','Kalt stellen und mit Eiswürfeln servieren.'],tip:'Beeren leicht zerdrücken, dann wird er fruchtiger.'},
+{id:'schorle',n:'Apfelschorle 1:3',k:'Erfrischung',rep:'Limo und Cola',why:'Ein Viertel Saft reicht für den Geschmack – so trinkst du nur ein Viertel des Zuckers.',m:[['',2]],
+ ing:[['100 ml','Apfelsaft (Direktsaft)','apfelsaft'],['300 ml','Mineralwasser'],['1 Spritzer','Zitrone','zitrone']],gq:[100,0,5],por:1,
+ s:['Saft ins Glas geben und mit kaltem Mineralwasser auffüllen.','Mit einem Spritzer Zitrone abschmecken.'],tip:'Mit der Zeit schmeckt auch 1:4 oder 1:5 – einfach langsam steigern.'},
+{id:'erdbeerlimo',n:'Erdbeer-Basilikum-Limo',k:'Erfrischung',rep:'Limonade',why:'Echte Frucht statt Sirup.',m:[['puree',5],['',8,'Ohne Mixer: Erdbeeren mit einer Gabel fein zerdrücken.']],
+ ing:[['150 g','Erdbeeren (oder TK-Beeren)','beeren'],['1','Zitrone (Saft)','zitrone'],['4 Blätter','Basilikum','basilikum'],['600 ml','Mineralwasser']],gq:[150,50,2,0],por:3,
+ s:['Erdbeeren mit Zitronensaft und Basilikum pürieren.','In eine Karaffe geben und mit kaltem Mineralwasser auffüllen.'],tip:'Statt Basilikum passt auch Minze.'}
+];
+const KINDS=['Smoothie','Shake','Saft','Warm','Erfrischung'];
+const fmtEur=n=>n.toLocaleString('de-DE',{style:'currency',currency:'EUR'});
+const shelfClass=d=>d<=3?'d1':d<=7?'d2':'d3';
 const MONTHS=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
 /* ============ ZUSTAND ============ */
@@ -1276,12 +1489,12 @@ const S={
  fresh:store.get('fresh',[]),
  persons:store.get('persons',1),
  allergies:(store.get('allergies',[])||[]).filter(k=>['laktose','milch','ei','gluten','nuesse','erdnuss','soja','sesam','sellerie','senf'].includes(k)),
- listStaples:store.get('listStaples',true),
+ buy:store.get('buy',[])||[],
  maxTime:0, meal:'all', showAll:false
 };
 if(!Array.isArray(S.chips)){S.chips=['zucchini','paprika','kichererbsen','zwiebel','feta'].map(id=>({label:I[id].n,id}));S.example=true;}
 const vegan=()=>S.diet==='vegan';
-const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('listStaples',S.listStaples);store.set('allergies',S.allergies);};
+const save=()=>{store.set('devices',S.devices);store.set('diet',S.diet);if(!S.example)store.set('chips',S.chips);store.set('stock',S.stock);store.set('useStock',S.useStock);store.set('fresh',S.fresh);store.set('persons',S.persons);store.set('buy',S.buy);store.set('allergies',S.allergies);};
 
 /* ============ HILFEN ============ */
 const $=(s,el=document)=>el.querySelector(s);
@@ -1329,6 +1542,12 @@ const agList=id=>{let l=plantSwap(id)?(AG_V[id]||[]):(AG_OF[id]||[]);
  if(has('gluten')&&LBL.gluten[id])l=l.filter(x=>!/Gluten/.test(x));
  if(has('soja')&&LBL.soja[id]&&!plantSwap(id))l=l.filter(x=>!/Soja/.test(x));
  return l;};
+function shopInfo(id){const x=SHOP[id];if(!x)return null;let pack=x.p,eur=x.e;const ps=plantSwap(id);
+ if(ps&&x.v)[pack,eur]=x.v;
+ if(has('gluten')&&x.gf)[pack,eur]=x.gf;
+ if(has('laktose')&&!ps&&x.lf)[pack,eur]=x.lf;
+ if(has('soja')&&x.sf&&(ps||!['joghurt','quark'].includes(id)))[pack,eur]=x.sf;
+ return {pack,eur,h:x.h,o:x.o,l:x.l};}
 const hiddenIng=id=>excluded(id)||(id==='eier'&&plantSwap('eier'))||(!!VALT[id]&&plantSwap(id));
 const VWORDS=[['Kräuterquark','Kräuter-Soja-Skyr'],['Milch','Haferdrink'],['Joghurt','Sojajoghurt'],['Feta','Vegan-Feta'],['Parmesan','Hefeflocken'],['Mozzarella','Vegan-Mozzarella'],['Käse','Pflanzenkäse'],['Sahne','Hafer-Cuisine'],['Butter','Pflanzenmargarine'],['Honig','Ahornsirup'],['Quark','Soja-Skyr']];
 const L='A-Za-zÄÖÜäöüß';
@@ -1356,7 +1575,7 @@ function calcNut(items,por){
  for(const it of items){
    if(!it.g)continue;const a=nv(it.id);if(!a)continue;const k=it.g/100;
    const kc=kcalOf(a)*k;tot.kcal+=kc;tot.p+=a[0]*k;tot.c+=a[1]*k;tot.z+=a[2]*k;tot.f+=a[3]*k;tot.b+=a[4]*k;
-   rows.push({label:it.label,m:Math.round(it.g)+' g',kcal:kc});
+   rows.push({label:it.label,m:Math.round(it.g)+' g'+pcs(it.id,it.g),kcal:kc});
  }
  const per={};for(const k in tot)per[k]=tot[k]/por;
  return {per,rows,por,total:tot.kcal};
@@ -1375,7 +1594,7 @@ function nutDetails(n){
   <div class="tablewrap"><table class="ntable"><thead><tr><th>Pro Portion</th><th class="num">Menge</th><th class="num">% RM</th></tr></thead><tbody>
   ${line('Energie',p.kcal,'kcal',RI.kcal)}${line('Eiweiß',p.p,'g',RI.p)}${line('Kohlenhydrate',p.c,'g',RI.c)}${line('davon Zucker',p.z,'g',RI.z)}${line('Fett',p.f,'g',RI.f)}${line('Ballaststoffe',p.b,'g',RI.b)}
   </tbody></table></div>
-  ${n.rows.length?`<div class="tablewrap"><table class="ntable"><thead><tr><th>Zutat</th><th class="num">Menge</th><th class="num">kcal</th></tr></thead><tbody>${rowsH}</tbody>${n.total?`<tfoot><tr><td>Gesamt (${n.por} ${n.por===1?'Portion':'Portionen'})</td><td></td><td class="num">${fmt(n.total)}</td></tr></tfoot>`:''}</table></div>`:''}
+  ${n.rows.length?`<div class="tablewrap"><table class="ntable"><thead><tr><th>Zutat</th><th class="num">Menge</th><th class="num">kcal (Menge)</th></tr></thead><tbody>${rowsH}</tbody>${n.total?`<tfoot><tr><td>Gesamt (${n.por} ${n.por===1?'Portion':'Portionen'})</td><td></td><td class="num">${fmt(n.total)}</td></tr></tfoot>`:''}</table></div>`:''}
   <p class="small muted">${n.ai?'Von Claude geschätzt.':'Schätzwerte aus Durchschnittswerten der Zutaten, ohne Salz. Reis, Nudeln, Linsen und Getreide als Trockengewicht, Flüssigkeiten in ml ≈ g.'} % RM = Anteil an der Referenzmenge für Erwachsene (2000 kcal) laut EU-Lebensmittelinformationsverordnung, Ballaststoffe nach DGE-Richtwert (30 g).</p>
  </details>`;
 }
@@ -1510,7 +1729,7 @@ function renderQuick(){
  $('#ingList').innerHTML=Object.values(I).map(x=>`<option value="${esc(dn(x.id))}">`).join('');
  const n=S.stock.filter(id=>!hiddenIng(id)).length;
  const ah=$('#agHint');if(S.allergies.length){ah.hidden=false;ah.innerHTML=`Angepasst für: <b>${esc(S.allergies.map(k=>AGN[k]).join(', '))}</b> · <button type="button" class="linkbtn" data-goto="kueche">ändern</button>`;}else ah.hidden=true;
- $('#stockCount').textContent=n?`(${n} Produkte abgehakt)`:'(noch nichts abgehakt)';
+ $('#stockCount').textContent=n?`(${n} als „Hab ich“ markiert)`:'(noch nichts als vorrätig markiert)';
  $('#useStock').checked=S.useStock;
 }
 const G={q:'',meal:'all',max:0,sort:'name',onlyDev:false,showAll:false};
@@ -1583,7 +1802,8 @@ function snackHTML(sn,ai){
  else{method=pickMethod(sn.m,owned);if(!method)missDev=missingDevices(sn.m);}
  const time=method?method.time:sn.m[0][1];
  let nut=sn.nut||null;
- if(!ai&&SQTY[sn.id]){const [gs,por,pl]=SQTY[sn.id];nut=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:gs[i],label:id&&I[id]&&dn(id)!==I[id].n?dn(id):vz(name)})).filter(x=>x.id),por);nut.pl=pl;}
+ const sq=sn.gq?[sn.gq,sn.por,sn.pl]:SQTY[sn.id];
+ if(!ai&&sq){const [gs,por,pl]=sq;nut=calcNut(sn.ing.map(([q,name,id],i)=>({id,g:gs[i],label:id&&I[id]&&dn(id)!==I[id].n?dn(id):vz(name)})).filter(x=>x.id),por);nut.pl=pl;}
  const devs=method?(method.names.length?method.names.join(' · '):'Kein Gerät nötig'):'';
  const ing=sn.ing.map(([q,name,id])=>{
    const label=id&&I[id]&&dn(id)!==I[id].n?dn(id):vz(name);
@@ -1591,17 +1811,27 @@ function snackHTML(sn,ai){
    return `<span class="q">${esc(q)}</span><span>${esc(label)}${ok?' <span class="ok" title="hast du">✓</span>':''}</span>`;
  }).join('');
  return `<article class="card${method?'':' dim'}">
-  <div class="swap"><span>Statt</span><s>${esc(sn.rep)}</s></div>
+  <div class="swap">${sn.k?`<span class="kindtag">${esc(sn.k)}</span>`:''}${sn.rep?`<span>statt</span><s>${esc(sn.rep)}</s>`:''}</div>
   <div class="card-h"><h3>${esc(vz(sn.n))}</h3><span class="time">${clock}${esc(time)} Min.</span></div>
   <p class="desc">${esc(vz(sn.why))}</p>
-  <div class="meta">${ai?'<span class="tag-ai">von Claude</span>':''}${devs?`<span>${esc(devs)}</span>`:''}${missDev.length?`<span class="warn">Braucht: ${esc(missDev.join(', '))}</span>`:''}</div>
+  <div class="meta">${ai?'<span class="tag-ai">von Claude</span>':''}${sn.k&&nut?`<span class="tag-sugar">${fmt(nut.per.z)} g Zucker</span>`:''}${devs?`<span>${esc(devs)}</span>`:''}${missDev.length?`<span class="warn">Braucht: ${esc(missDev.join(', '))}</span>`:''}</div>
   ${nut?nutStrip(nut,'pro Portion'+(nut.pl?' ('+nut.pl+')':'')):''}
   <ul class="amounts">${ing}</ul>
   <details><summary>Zubereitung</summary>${method&&method.note?`<p class="note">${esc(method.note)}</p>`:''}<ol>${sn.s.map(s=>`<li>${esc(vz(s))}</li>`).join('')}</ol>${sn.tip?`<p class="small muted" style="margin-top:8px">Tipp: ${esc(vz(sn.tip))}</p>`:''}</details>
   ${nut?nutDetails(nut):''}
  </article>`;
 }
+let drinkKind='Alle';
+function renderDrinks(){
+ const owned=new Set(S.devices);
+ $('#drinkKinds').innerHTML=['Alle',...KINDS].map(k=>`<button type="button" data-k="${k}" aria-pressed="${drinkKind===k}">${k==='Alle'?'Alle':k==='Warm'?'Warme Getränke':k==='Erfrischung'?'Erfrischungen':k==='Saft'?'Säfte':k+'s'}</button>`).join('');
+ const ok=DRINKS.filter(d=>!d.ing.some(l=>l[2]&&excluded(l[2])));
+ const list=ok.filter(d=>drinkKind==='Alle'||d.k===drinkKind).sort((a,b)=>(pickMethod(a.m,owned)?0:1)-(pickMethod(b.m,owned)?0:1));
+ const hid=DRINKS.length-ok.length;
+ $('#drinkGrid').innerHTML=list.map(d=>snackHTML(d,false)).join('')+(hid?`<p class="small muted" style="grid-column:1/-1">${hid} ${hid===1?'Getränk ist':'Getränke sind'} wegen deiner Unverträglichkeiten ausgeblendet.</p>`:'');
+}
 function renderSnacks(){
+ renderDrinks();
  const owned=new Set(S.devices);
  const ok=SNACKS.filter(s=>!s.ing.some(l=>l[2]&&excluded(l[2])));
  const sorted=ok.sort((a,b)=>(pickMethod(a.m,owned)?0:1)-(pickMethod(b.m,owned)?0:1));
@@ -1613,35 +1843,60 @@ function renderSnacks(){
 const usage={};
 for(const r of RECIPES){const ids=new Set([...r.core,...r.opt].flatMap(g=>g.split('|')));for(const a of ids)usage[a]=(usage[a]||0)+1;}
 function renderStock(){
- const st=new Set(S.stock);
+ const st=new Set(S.stock),buy=new Set(S.buy);
  $('#stockGroups').innerHTML=STAPLES.map(g=>{
    const items=g.items.filter(([id])=>!hiddenIng(id));
    return `<div class="sg"><h3>${esc(g.g)}</h3><div class="sitems">${items.map(([id,why])=>{
-     const on=st.has(id);const n=usage[id]||0;
-     return `<label class="sitem${on?' on':''}"><input type="checkbox" data-id="${id}"${on?' checked':''}><span style="display:grid;gap:1px;min-width:0;flex:1"><span class="rowline" style="gap:6px"><span class="nm">${esc(dn(id))}</span>${n?`<span class="cnt">in ${n} Gerichten</span>`:''}</span><span class="ds">${esc(vz(why))}</span></span></label>`;
+     const on=buy.has(id),hv=st.has(id);const n=usage[id]||0;
+     const si=shopInfo(id);
+     return `<div class="sitem${on?' on':''}${hv?' have':''}"${si?` title="Geöffnet: ${esc(si.o)} · Lagerort: ${esc(si.l)}"`:''}><input type="checkbox" id="buy-${id}" data-buy="${id}"${on?' checked':''}><label for="buy-${id}" style="display:grid;gap:1px;min-width:0;flex:1;cursor:pointer"><span class="rowline" style="gap:6px"><span class="nm">${esc(dn(id))}</span>${n?`<span class="cnt">in ${n} Gerichten</span>`:''}</span><span class="ds">${esc(vz(why))}</span>${si?`<span class="si">ca. ${fmtEur(si.eur)} · ${esc(si.pack)} · hält ${esc(si.h)}</span>`:''}</label><button type="button" class="havebtn" data-have="${id}" aria-pressed="${hv}" title="Als vorrätig markieren – zählt beim Kochen als vorhanden">${hv?'✓ ':''}Hab ich</button></div>`;
    }).join('')}</div></div>`;
  }).join('');
+ const vis=STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>!hiddenIng(id));
+ const all=vis.reduce((a,id)=>a+(shopInfo(id)?.eur||0),0),need=vis.filter(id=>buy.has(id)).reduce((a,id)=>a+(shopInfo(id)?.eur||0),0);
+ $('#stockSum').innerHTML=`<span>Kompletter Grundvorrat einmalig: <b>ca. ${fmtEur(all)}</b></span><span>Angekreuzt: <b>ca. ${fmtEur(need)}</b></span><span class="muted">Das meiste hält Monate und reicht für viele Wochen.</span><span><button type="button" class="linkbtn" data-act="addmissing">Alles ankreuzen, was nicht vorrätig ist</button> · <button type="button" class="linkbtn" data-act="clearbuy">Auswahl leeren</button></span>`;
  const mo=new Date().getMonth();const se=SEASON[mo];
  $('#seasonTitle').textContent='Frisch im '+MONTHS[mo];
  const fr=new Set(S.fresh);
- const btns=arr=>arr.map(x=>`<button type="button" data-f="${esc(x)}" aria-pressed="${fr.has(x)}">${esc(x)}</button>`).join('');
+ const btns=arr=>arr.map(x=>{const f=FRESH[x];return `<button type="button" data-f="${esc(x)}" aria-pressed="${fr.has(x)}"${f?` title="${esc(f[0])} · ca. ${fmtEur(f[1])} · hält ${esc(f[2])} · ${esc(f[3])}"`:''}>${f?`<i class="dot ${shelfClass(f[4])}"></i>`:''}${esc(x)}</button>`;}).join('');
  $('#seasonVeg').innerHTML=btns(se.g);$('#seasonFruit').innerHTML=btns(se.o);$('#seasonAlways').innerHTML=btns(ALWAYS);
  $('#persons').textContent=S.persons;$('#goalVeg').textContent=21*S.persons;$('#goalFruit').textContent=14*S.persons;
- $('#listStaples').checked=S.listStaples;
  renderList();
 }
+const longLife=f=>f[4]>30;
 function shoppingItems(){
- const st=new Set(S.stock);
- const staples=S.listStaples?STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>!st.has(id)&&!hiddenIng(id)).map(dn):[];
- return {fresh:[...S.fresh],staples};
+ const buy=new Set(S.buy);
+ const staples=STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>buy.has(id)&&!hiddenIng(id)).map(id=>{const si=shopInfo(id)||{pack:'',eur:0,h:'',l:''};return {name:dn(id),pack:si.pack,eur:si.eur,h:si.h,l:si.l,qty:1};});
+ const fresh=S.fresh.map(n=>{const f=FRESH[n]||['',0,'','',7];const qty=longLife(f)?1:S.persons;return {name:n,pack:f[0],eur:f[1]*qty,h:f[2],l:f[3],d:f[4],qty};});
+ return {fresh,staples};
 }
+function freshGroups(fresh){return [
+ ['d1','Zuerst verbrauchen (1–3 Tage)',fresh.filter(x=>x.d<=3)],
+ ['d2','Innerhalb der Woche',fresh.filter(x=>x.d>3&&x.d<=7)],
+ ['d3','Hält länger als eine Woche',fresh.filter(x=>x.d>7)]
+].filter(g=>g[2].length);}
 function renderList(){
  const {fresh,staples}=shoppingItems();
  $('#listCount').textContent=`(${fresh.length+staples.length})`;
+ const sum=a=>a.reduce((t,x)=>t+x.eur,0);const fT=sum(fresh),sT=sum(staples);
+ $('#listTotal').textContent='ca. '+fmtEur(fT+sT);
+ $('#totalLbl').textContent=fresh.length&&staples.length?`Frisch ${fmtEur(fT)} · Vorrat ${fmtEur(sT)}`:'Geschätzte Kosten';
+ const row=x=>`<li><span>${esc(x.name)}</span><span class="lp">${fmtEur(x.eur)}</span><span class="lm">${x.qty>1?x.qty+' × ':''}${esc(x.pack)}${x.h?' · hält '+esc(x.h):''}</span></li>`;
  let h='';
- if(fresh.length)h+=`<h4>Frisch</h4><ul>${fresh.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
- if(staples.length)h+=`<h4>Grundvorrat</h4><ul>${staples.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
- $('#shopList').innerHTML=h||'<p class="small muted">Tippe links auf saisonales Obst und Gemüse. Nicht abgehakter Grundvorrat erscheint hier automatisch.</p>';
+ const short=fresh.filter(x=>x.d<=3).length;
+ if(short>=3)h+=`<p class="tipbox">${short} schnell verderbliche Sachen auf der Liste. Plane sie für die ersten zwei Tage ein oder greif zu TK-Ware.</p>`;
+ for(const [c,t,items] of freshGroups(fresh))h+=`<h4><i class="dot ${c}"></i>${t}</h4><ul class="slist">${items.map(row).join('')}</ul>`;
+ if(staples.length)h+=`<h4>Grundvorrat</h4><ul class="slist">${staples.map(row).join('')}</ul>`;
+ if(S.persons>1&&fresh.length)h+=`<p class="small muted">Frische Mengen für ${S.persons} Personen hochgerechnet, lange Haltbares wie Zwiebeln oder TK-Ware einfach.</p>`;
+ $('#shopList').innerHTML=h||'<p class="small muted">Tippe links auf saisonales Obst und Gemüse oder lass dir einen Wochenkorb vorschlagen. Aus dem Grundvorrat erscheint hier, was du links ankreuzt.</p>';
+}
+function suggestBasket(){
+ const se=SEASON[new Date().getMonth()];const d=n=>(FRESH[n]||[0,0,0,0,7])[4];
+ const veg=[...se.g].sort((a,b)=>d(a)-d(b));
+ const pick=(arr,f,n)=>arr.filter(f).slice(0,n);
+ const sel=[...pick(veg,x=>d(x)<=3,1),...pick(veg,x=>d(x)>3&&d(x)<=7,3),...pick([...veg].reverse(),x=>d(x)>7,4),...[...se.o].sort((a,b)=>d(b)-d(a)).slice(0,2),'Bananen','Zitronen','Zwiebeln','Knoblauch','TK-Spinat','TK-Beeren'];
+ S.fresh=[...new Set(sel)];save();renderStock();
+ toast('Wochenkorb zusammengestellt – passe ihn nach Lust an.');
 }
 
 /* ============ RENDER: KÜCHE ============ */
@@ -1668,9 +1923,9 @@ function renderNutTab(){
  let list=Object.values(I).filter(x=>!hiddenIng(x.id)&&(NW.cat==='all'||x.c===NW.cat)).map(x=>{const a=nv(x.id)||[0,0,0,0,0];return {id:x.id,name:dn(x.id),note:NOTE[x.id]||'',ag:agList(x.id),kcal:kcalOf(a),p:a[0],c:a[1],z:a[2],f:a[3],b:a[4]};});
  if(q)list=list.filter(r=>r.name.toLowerCase().includes(q)||r.id===qid);
  const k=NW.sort;list.sort((a,b)=>k==='name'?a.name.localeCompare(b.name,'de')*NW.dir:(a[k]-b[k])*NW.dir);
- const cols=[['name','Zutat'],['kcal','kcal'],['p','Eiweiß'],['c','Kohlenh.'],['z','Zucker'],['f','Fett'],['b','Ballastst.']];
+ const cols=[['name','Zutat'],['kcal','kcal / 100 g'],['p','Eiweiß'],['c','Kohlenh.'],['z','Zucker'],['f','Fett'],['b','Ballastst.']];
  const head='<thead><tr>'+cols.map(([c,l])=>`<th class="${c==='name'?'':'num'}" aria-sort="${k===c?(NW.dir>0?'ascending':'descending'):'none'}"><button type="button" class="sortbtn" data-k="${c}">${l}${k===c?(NW.dir>0?' ↑':' ↓'):''}</button></th>`).join('')+'<th>Allergene</th></tr></thead>';
- const body=list.map(r=>`<tr><td><span class="nm">${esc(r.name)}</span>${r.note?` <span class="small muted">${esc(r.note)}</span>`:''}</td><td class="num"><b>${fmt(r.kcal)}</b></td><td class="num">${fmt(r.p)}</td><td class="num">${fmt(r.c)}</td><td class="num">${fmt(r.z)}</td><td class="num">${fmt(r.f)}</td><td class="num">${fmt(r.b)}</td><td class="agcell">${esc(r.ag.join(', '))||'–'}</td></tr>`).join('');
+ const body=list.map(r=>`<tr><td><span class="nm">${esc(r.name)}</span>${r.note?` <span class="small muted">${esc(r.note)}</span>`:''}${per100(r.id)?`<span class="pc">${esc(per100(r.id))}</span>`:''}</td><td class="num"><b>${fmt(r.kcal)}</b></td><td class="num">${fmt(r.p)}</td><td class="num">${fmt(r.c)}</td><td class="num">${fmt(r.z)}</td><td class="num">${fmt(r.f)}</td><td class="num">${fmt(r.b)}</td><td class="agcell">${esc(r.ag.join(', '))||'–'}</td></tr>`).join('');
  $('#nwTable').innerHTML=head+'<tbody>'+(body||'<tr><td colspan="8" class="muted">Keine Zutat gefunden.</td></tr>')+'</tbody>';
 }
 $('#nwSearch').addEventListener('input',e=>{NW.q=e.target.value;renderNutTab();});
@@ -1701,22 +1956,30 @@ function setDiet(d){S.diet=d;save();renderAll();aiClearOnDiet();}
 $('#dietVeg').addEventListener('click',()=>setDiet('veg'));$('#dietVegan').addEventListener('click',()=>setDiet('vegan'));
 $('#obVeg').addEventListener('click',()=>setDiet('veg'));$('#obVegan').addEventListener('click',()=>setDiet('vegan'));
 $('#kitchenGrid').addEventListener('click',e=>{const b=e.target.closest('[data-dev]');if(!b)return;const id=b.dataset.dev;S.devices=S.devices.includes(id)?S.devices.filter(x=>x!==id):[...S.devices,id];save();renderKitchen();renderResults();renderSnacks();});
-$('#stockGroups').addEventListener('change',e=>{const c=e.target.closest('input[data-id]');if(!c)return;const id=c.dataset.id;S.stock=c.checked?[...new Set([...S.stock,id])]:S.stock.filter(x=>x!==id);c.closest('.sitem').classList.toggle('on',c.checked);save();renderList();renderQuick();renderResults();});
+$('#stockGroups').addEventListener('change',e=>{const c=e.target.closest('input[data-buy]');if(!c)return;const id=c.dataset.buy;S.buy=c.checked?[...new Set([...S.buy,id])]:S.buy.filter(x=>x!==id);save();renderStock();});
+$('#stockGroups').addEventListener('click',e=>{const b=e.target.closest('[data-have]');if(!b)return;const id=b.dataset.have;const now=!S.stock.includes(id);S.stock=now?[...S.stock,id]:S.stock.filter(x=>x!==id);if(now)S.buy=S.buy.filter(x=>x!==id);save();renderStock();renderQuick();renderResults();});
+$('#stockSum').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
+ if(b.dataset.act==='addmissing'){const ids=STAPLES.flatMap(g=>g.items.map(i=>i[0])).filter(id=>!hiddenIng(id)&&!S.stock.includes(id));S.buy=[...new Set([...S.buy,...ids])];}
+ else S.buy=[];
+ save();renderStock();});
 $('#p-einkauf').addEventListener('click',e=>{const b=e.target.closest('button[data-f]');if(!b)return;const f=b.dataset.f;S.fresh=S.fresh.includes(f)?S.fresh.filter(x=>x!==f):[...S.fresh,f];b.setAttribute('aria-pressed',String(S.fresh.includes(f)));save();renderList();});
-$('#listStaples').addEventListener('change',e=>{S.listStaples=e.target.checked;save();renderList();});
+$('#basketBtn').addEventListener('click',suggestBasket);
+$('#drinkKinds').addEventListener('click',e=>{const b=e.target.closest('button[data-k]');if(!b)return;drinkKind=b.dataset.k;renderDrinks();});
 $('#clearFresh').addEventListener('click',()=>{S.fresh=[];save();renderStock();});
 $('#pMinus').addEventListener('click',()=>{S.persons=Math.max(1,S.persons-1);save();renderStock();});
 $('#pPlus').addEventListener('click',()=>{S.persons=Math.min(8,S.persons+1);save();renderStock();});
 $('#copyList').addEventListener('click',()=>{
  const {fresh,staples}=shoppingItems();
- const txt=['Einkaufsliste',...(fresh.length?['','Frisch:',...fresh.map(x=>'- '+x)]:[]),...(staples.length?['','Grundvorrat:',...staples.map(x=>'- '+x)]:[])].join('\n');
+ const line=x=>`- ${x.qty>1?x.qty+' × ':''}${x.name} (${x.pack}) – ca. ${fmtEur(x.eur)}`;
+ const total=[...fresh,...staples].reduce((t,x)=>t+x.eur,0);
+ const txt=['Einkaufsliste',...freshGroups(fresh).flatMap(([c,t,items])=>['',t+':',...items.map(line)]),...(staples.length?['','Grundvorrat:',...staples.map(line)]:[]),'','Geschätzt gesamt: ca. '+fmtEur(total)].join('\n');
  const fb=$('#listFallback');
  const fallback=()=>{fb.hidden=false;fb.value=txt;fb.focus();fb.select();toast('Text markiert – jetzt kopieren.');};
  try{navigator.clipboard.writeText(txt).then(()=>{fb.hidden=true;toast('Einkaufsliste kopiert.');},fallback);}catch(e){fallback();}
 });
 
 /* Tabs */
-const TABS=['kochen','gerichte','snacks','einkauf','naehrwerte','kueche'];
+const TABS=['kochen','gerichte','snacks','saftbar','einkauf','naehrwerte','kueche'];
 function showTab(t){
  if(!TABS.includes(t))t='kochen';
  for(const x of TABS){$('#tab-'+x).setAttribute('aria-selected',String(x===t));$('#p-'+x).hidden=x!==t;}
