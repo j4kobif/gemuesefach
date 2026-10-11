@@ -13,7 +13,7 @@ Gesund kochen mit dem, was da ist – eine Website, die aus deinen Zutaten veget
 - **Unverträglichkeiten & Allergien**: Laktose, Milcheiweiß, Ei, Gluten, Nüsse, Erdnüsse, Soja, Sesam, Sellerie und Senf – Zutaten werden durch verträgliche Varianten ersetzt (z. B. laktosefreier Joghurt, glutenfreie Nudeln) oder Gerichte ausgeblendet; Allergene stehen auch in der Nährwerttabelle
 - **Vegetarisch oder vegan** per Schalter – Milchprodukte und Eier werden automatisch ersetzt
 - **Gesunde Snacks**: 12 selbstgemachte Alternativen, z. B. Schoko-Haselnuss-Creme mit Datteln statt Nuss-Nougat-Creme
-- **Wocheneinkauf**: Grundvorrat zum Ankreuzen (nur Angekreuztes kommt auf die Liste, „Hab ich“ markiert Vorrätiges fürs Kochen), saisonales Obst & Gemüse mit Wochenkorb-Vorschlag, geschätzte Kosten pro Produkt und für die ganze Liste, Haltbarkeit und Lagerort, Liste sortiert nach Verbrauchsreihenfolge, Lager- und Spartipps
+- **Wocheneinkauf**: Grundvorrat zum Ankreuzen (nur Angekreuztes kommt auf die Liste, „Hab ich“ markiert Vorrätiges fürs Kochen), saisonales Obst & Gemüse mit Wochenkorb-Vorschlag, geschätzte Kosten pro Produkt und für die ganze Liste, Haltbarkeit und Lagerort, Liste sortiert nach Verbrauchsreihenfolge, Lager- und Spartipps; Auswertung, wie viele Gerichte der Einkauf ermöglicht, wie weit Gemüse und Obst reichen und welche Zusatzprodukte am meisten weitere Gerichte freischalten
 - **Saftbar**: 14 Smoothies, Säfte, Shakes, warme Getränke und Erfrischungen ohne zugesetzten Zucker, mit Nährwerten
 
 Alles läuft im Browser, ohne Server. Einstellungen werden im `localStorage` gespeichert.
