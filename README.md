@@ -3,7 +3,7 @@
 Gesund kochen mit dem, was da ist – eine Website, die aus deinen Zutaten vegetarische (auf Wunsch vegane) Gerichte vorschlägt.
 
 ## Funktionen
-- **Zutaten eingeben** und passende Gerichte mit geschätzter Zubereitungszeit bekommen (108 Rezepte, u. a. je 10+ griechische, deutsche, italienische und vietnamesische Gerichte, Mengen meist für 2 Portionen)
+- **Zutaten eingeben** und passende Gerichte mit geschätzter Zubereitungszeit bekommen (109 Rezepte, u. a. je 10+ griechische, deutsche, italienische und vietnamesische Gerichte, Mengen meist für 2 Portionen)
 - **Eigene Rezepte**: Name, Zutaten mit Gramm, Zubereitung und Portionen eintragen; Nährwerte werden automatisch aus der Nährwerttabelle berechnet (unbekannte Zutaten auf claude.ai per Claude geschätzt) oder selbst eingetragen; bearbeiten und löschen
 - **Tagesplan**: eigenes Kalorienziel und optionale Nährwertziele (Eiweiß, Kohlenhydrate, Fett, Ballaststoffe, Zucker-Obergrenze) eingeben, bereits Gegessenes abziehen und einen Plan aus Frühstück, Mittag, Abend und Snack bekommen, der nah am Ziel liegt (mit Portionsgrößen, Tauschen pro Mahlzeit, Makro-Übersicht); jede Rezeptkarte zeigt den Anteil am Tagesziel
 - **Reiter „Gerichte“**: alle Rezepte auf einen Blick, mit Suche nach Gericht oder Zutat, Filtern (Küche, Mahlzeit, Zeit, nur mit meinen Geräten) und Sortierung nach Name, Zeit, kcal oder Eiweiß

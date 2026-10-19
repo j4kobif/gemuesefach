@@ -805,8 +805,9 @@ const ING_RAW=[
 ['joghurt','Joghurt','m','Sojajoghurt','joghurt,naturjoghurt,griechischer joghurt,skyr,sojajoghurt,veganer joghurt,kokosjoghurt'],
 ['quark','Quark','m','Soja-Skyr','quark,magerquark,frischkäse,hüttenkäse'],
 ['milch','Milch','m','Haferdrink','milch,hafermilch,haferdrink,sojamilch,sojadrink,mandelmilch,pflanzenmilch,pflanzendrink'],
-['sahne','Sahne','m','Hafer-Cuisine','sahne,kochsahne,schmand,saure sahne,crème fraîche,creme fraiche,hafer-cuisine,hafersahne,sojasahne'],
+['sahne','Sahne','m','Hafer-Cuisine','sahne,kochsahne,crème fraîche,creme fraiche,hafer-cuisine,hafersahne,sojasahne'],
 ['butter','Butter','m','Pflanzenmargarine','butter,margarine'],
+['sauresahne','Saure Sahne','m','Pflanzliche saure Sahne','saure sahne,sauerrahm,schmand,sour cream'],
 ['halloumi','Halloumi','m','Räuchertofu','halloumi,grillkäse'],
 ['ricotta','Ricotta','m','Tofu-Ricotta','ricotta'],
 ['dosentomaten','Dosentomaten','v','','dosentomaten,stückige tomaten,gehackte tomaten,passierte tomaten,passata,tomatendose,pizzatomaten'],
@@ -1306,6 +1307,12 @@ const RECIPES=[
  s:['Zwiebel, 300 g Kartoffeln und 2 Karotten würfeln und in Öl anschwitzen.','800 ml Brühe zugeben und 15 Min. köcheln.','450 g TK-Erbsen zugeben, 5 Min. garen und ein Drittel zerdrücken.','Mit Majoran, Salz und Pfeffer abschmecken und Räuchertofu-Würfel darübergeben.'],
  p:[['Räuchertofu','rauchig','raeuchertofu'],['Frische Minze','überraschend gut','minze'],['Petersilie','grün','petersilie'],['Vollkornbrot','dazu','brot']]},
 
+{id:'gurkensalat',cu:'Deutsch',n:'Gurkensalat mit Sahne',d:'Schnell, cremig und frisch – mit Dill und einem Hauch Essig.',
+ core:['gurke','sauresahne|sahne|joghurt','dill|schnittlauch'],opt:['zwiebel','essig','zitrone','fruehlingszwiebel'],
+ m:[['',10]],
+ s:['1 große Gurke (ca. 400 g) waschen und fein hobeln, nach Wunsch vorher schälen.','Leicht salzen, 5 Min. ziehen lassen und das Wasser abgießen – so wird der Salat nicht wässrig.',['100 g saure Sahne mit 1 EL Essig oder Zitronensaft, Pfeffer, gehacktem Dill und nach Wunsch ½ fein gewürfelten Zwiebel verrühren.','100 g pflanzliche saure Sahne mit 1 EL Essig oder Zitronensaft, Pfeffer, gehacktem Dill und nach Wunsch ½ fein gewürfelten Zwiebel verrühren.'],'Mit den Gurken mischen und sofort servieren.'],
+ p:[['Radieschen','Schärfe und Farbe','radieschen'],['Frühlingszwiebel','frisch','fruehlingszwiebel'],['Kürbiskerne','Crunch','kerne'],['Pellkartoffeln dazu','klassische Kombi','kartoffel']]},
+
 /* ---- Italienische Küche ---- */
 {id:'pastafagioli',cu:'Italienisch',n:'Pasta e fagioli',d:'Dicke Bohnen-Nudel-Suppe aus Großmutters Küche.',
  core:['nudeln','weisse_bohnen|kidneybohnen','dosentomaten','zwiebel','bruehe'],opt:['karotte','sellerie','knoblauch','parmesan','oregano'],
@@ -1538,14 +1545,14 @@ kurkuma:[10,44,3,3,21],
 basilikum:[3.2,1,0.3,0.6,1.6],petersilie:[3,1.5,0.9,0.8,3.3],koriander:[2.1,0.9,0.9,0.5,2.8],schnittlauch:[3.3,1.9,1.9,0.7,2.5],
 minze:[3.8,6.9,0,0.9,8],
 zitronengras:[1.8,24,0,0.5,0],sprossen:[3,4,4,0.2,1.8],pak_choi:[1.5,1.2,1.2,0.2,1],reispapier:[0.8,82,0.5,0.2,1],filoteig:[8,55,1,3,2.5],
-spaetzle:[8,42,1,3,2],maultaschen:[7,25,2,6,2.5],ricotta:[8,3,3,10,0],dill:[3.5,5,0,1.1,2.1],
+spaetzle:[8,42,1,3,2],maultaschen:[7,25,2,6,2.5],ricotta:[8,3,3,10,0],sauresahne:[2.8,3.5,3.5,10,0],dill:[3.5,5,0,1.1,2.1],
 oel:[0,0,0,100,0],
 apfelsaft:[0.1,10.5,10,0.1,0.2]
 };
 /* Werte der veganen Alternativen (Haferdrink, Sojajoghurt, Pflanzenkäse …) */
 const NUTV={feta:[0.5,20,0,22,0],mozzarella:[1,20,0,21,0],parmesan:[50,12,1,5,20],kaese:[0.5,21,0,23,0],joghurt:[4,1.5,0.5,2.3,1],
 quark:[10,3,2,2,1],milch:[0.5,6.7,4,1.5,0.8],sahne:[0.5,6,1,13.5,0.5],butter:[0,0.5,0.5,80,0],honig:[0,67,60,0,0],
-halloumi:[16,1.5,0.5,9,1.5],pesto:[3,5,2,46,2],spaetzle:[7,44,1,1.5,2.5],maultaschen:[6,26,2,5,3],ricotta:[12,2,0.5,7,1]};
+halloumi:[16,1.5,0.5,9,1.5],pesto:[3,5,2,46,2],spaetzle:[7,44,1,1.5,2.5],maultaschen:[6,26,2,5,3],ricotta:[12,2,0.5,7,1],sauresahne:[1,4,1,10,0.5]};
 const NOTE={kichererbsen:'Dose, abgetropft',kidneybohnen:'Dose, abgetropft',schwarze_bohnen:'Dose, abgetropft',weisse_bohnen:'Dose, abgetropft',
 mais:'Dose, abgetropft',rote_linsen:'trocken',linsen:'trocken',reis:'trocken',nudeln:'trocken',reisnudeln:'trocken',couscous:'trocken',
 bulgur:'trocken',quinoa:'trocken',hirse:'trocken',polenta:'trocken',lasagne:'trocken',haferflocken:'trocken',bruehe:'zubereitet',
@@ -1645,7 +1652,7 @@ sommerrollen:[[80,200,250,20],{reisnudeln:50,erdnussmus:30,sojasauce:15,limette:
 bunchay:[[150,200,300,20,30],{zitronengras:15,sojasauce:30,nuesse:20,oel:15}],banhmi:[[200,200,150,15],{zitronengras:10,essig:30,sojasauce:15,oel:15}],
 cari:[[250,400,200,15,80],{karotte:100,reis:120,oel:10}],tofuxaot:[[400,30,10,150],{gurke:150,sojasauce:30,oel:20}],
 pakchoi:[[500,250,15,30,150],{tofu:150,oel:15}],glasnudelsalat:[[150,250,150,20,30],{nuesse:20,sojasauce:20,oel:10}],
-tomatentofusuppe:[[300,200,40,800],{sojasauce:15,oel:10}],bunxao:[[150,200,350,45],{sprossen:80,oel:20}]
+gurkensalat:[[400,100,10],{zwiebel:30,essig:10}],tomatentofusuppe:[[300,200,40,800],{sojasauce:15,oel:10}],bunxao:[[150,200,350,45],{sprossen:80,oel:20}]
 };
 /* Küche je Rezept (neue Rezepte tragen sie selbst) */
 const CU={griechisch:'Griechisch',gyros:'Griechisch',bolognese:'Italienisch',pilzpasta:'Italienisch',bruschetta:'Italienisch',minestrone:'Italienisch',gnocchi:'Italienisch',lasagne:'Italienisch',polenta:'Italienisch',erbsenpasta:'Italienisch',pestopasta:'Italienisch',frittata:'Italienisch',
@@ -1776,7 +1783,7 @@ currypaste:[15,'EL','EL'],miso:[18,'EL','EL'],pesto:[15,'EL','EL'],zartbitter:[5
 milch:[200,'Glas','Gläser'],sahne:[200,'Becher','Becher'],butter:[15,'EL','EL'],parmesan:[5,'EL gerieben','EL gerieben'],kaese:[25,'Scheibe','Scheiben'],
 curry:[2,'TL','TL'],kreuzkuemmel:[2,'TL','TL'],paprikapulver:[2,'TL','TL'],zimt:[2,'TL','TL'],oregano:[1,'TL','TL'],kurkuma:[3,'TL','TL'],
 basilikum:[30,'Bund','Bund'],petersilie:[30,'Bund','Bund'],koriander:[30,'Bund','Bund'],schnittlauch:[25,'Bund','Bund'],minze:[20,'Bund','Bund'],
-backpulver:[15,'Päckchen','Päckchen'],reispapier:[8,'Blatt','Blätter'],maultaschen:[60,'Maultasche','Maultaschen'],pak_choi:[250,'Staude','Stauden'],zitronengras:[15,'Stange','Stangen'],dill:[20,'Bund','Bund'],ricotta:[250,'Becher','Becher'],filoteig:[20,'Blatt','Blätter'],gnocchi:[500,'Packung','Packungen'],joghurt:[150,'Becher (klein)','Becher (klein)']
+backpulver:[15,'Päckchen','Päckchen'],reispapier:[8,'Blatt','Blätter'],maultaschen:[60,'Maultasche','Maultaschen'],pak_choi:[250,'Staude','Stauden'],zitronengras:[15,'Stange','Stangen'],dill:[20,'Bund','Bund'],ricotta:[250,'Becher','Becher'],sauresahne:[200,'Becher','Becher'],filoteig:[20,'Blatt','Blätter'],gnocchi:[500,'Packung','Packungen'],joghurt:[150,'Becher (klein)','Becher (klein)']
 };
 const fmtCount=n=>{if(n<2){const r=Math.round(n*2)/2;const w=Math.floor(r);return (w?w:'')+(r%1?'½':'')||'½';}return String(Math.round(n));};
 const pcs=(id,g)=>{const p=PIECE[id];if(!p||!g)return '';const n=g/p[0];if(n<0.4||n>40)return '';const r=n<2?Math.max(0.5,Math.round(n*2)/2):Math.round(n);return ` (≈ ${fmtCount(n)} ${r>1?p[2]:p[1]})`;};
@@ -1883,12 +1890,12 @@ const LBL={
  soja:{vegan_chicken:'Erbsenprotein-Chicken (sojafrei)',vegan_hack:'Erbsenhack (sojafrei)',sojasauce:'Kokos-Aminos (statt Sojasauce)',joghurt:'Haferjoghurt',quark:'Haferquark',ricotta:'Hafer-Frischkäse'},
  sesam:{kerne:'Kürbis- oder Sonnenblumenkerne'},
  sellerie:{bruehe:'Gemüsebrühe ohne Sellerie'},
- laktose:{milch:'Laktosefreie Milch',joghurt:'Laktosefreier Joghurt',quark:'Laktosefreier Quark',sahne:'Laktosefreie Sahne',kaese:'Gereifter Käse (laktosefrei)',mozzarella:'Laktosefreier Mozzarella',feta:'Laktosefreier Feta',parmesan:'Parmesan (von Natur aus laktosefrei)',butter:'Laktosefreie Butter',halloumi:'Laktosefreier Halloumi',ricotta:'Laktosefreier Ricotta'}
+ laktose:{milch:'Laktosefreie Milch',joghurt:'Laktosefreier Joghurt',quark:'Laktosefreier Quark',sahne:'Laktosefreie Sahne',kaese:'Gereifter Käse (laktosefrei)',mozzarella:'Laktosefreier Mozzarella',feta:'Laktosefreier Feta',parmesan:'Parmesan (von Natur aus laktosefrei)',butter:'Laktosefreie Butter',halloumi:'Laktosefreier Halloumi',ricotta:'Laktosefreier Ricotta',sauresahne:'Laktosefreie saure Sahne'}
 };
 /* Text-Prüfung für Aufpimp-Vorschläge ohne eigene Zutat */
 const TXT={nuesse:/nüss|nuss|mandel|cashew|pinienkern|pesto/i,erdnuss:/erdnuss|erdnüss/i,sesam:/sesam|tahini/i,senf:/senf/i,soja:/tofu|soja|edamame|miso|tempeh/i,sellerie:/sellerie/i};
 /* Allergene je Zutat (EU-Kennzeichnung) für die Nährwerttabelle */
-const AG_OF={nudeln:['Gluten'],brot:['Gluten'],tortilla:['Gluten'],mehl:['Gluten'],lasagne:['Gluten'],gnocchi:['Gluten'],couscous:['Gluten'],bulgur:['Gluten'],haferflocken:['Gluten (Hafer)'],sojasauce:['Soja','Gluten'],miso:['Soja'],tofu:['Soja'],raeuchertofu:['Soja'],tempeh:['Soja'],edamame:['Soja'],vegan_chicken:['meist Soja','ggf. Gluten'],vegan_hack:['meist Soja'],eier:['Ei'],nuesse:['Schalenfrüchte'],haselnuesse:['Schalenfrüchte'],cashews:['Schalenfrüchte'],pesto:['Milch','Schalenfrüchte'],erdnussmus:['Erdnuss'],tahini:['Sesam'],kerne:['ggf. Sesam'],senf:['Senf'],sellerie:['Sellerie'],bruehe:['oft Sellerie'],feta:['Milch'],mozzarella:['Milch'],parmesan:['Milch'],kaese:['Milch'],joghurt:['Milch'],quark:['Milch'],milch:['Milch'],sahne:['Milch'],butter:['Milch'],halloumi:['Milch'],zartbitter:['ggf. Milchspuren'],spaetzle:['Gluten','Ei'],maultaschen:['Gluten','Ei'],filoteig:['Gluten'],ricotta:['Milch']};
+const AG_OF={nudeln:['Gluten'],brot:['Gluten'],tortilla:['Gluten'],mehl:['Gluten'],lasagne:['Gluten'],gnocchi:['Gluten'],couscous:['Gluten'],bulgur:['Gluten'],haferflocken:['Gluten (Hafer)'],sojasauce:['Soja','Gluten'],miso:['Soja'],tofu:['Soja'],raeuchertofu:['Soja'],tempeh:['Soja'],edamame:['Soja'],vegan_chicken:['meist Soja','ggf. Gluten'],vegan_hack:['meist Soja'],eier:['Ei'],nuesse:['Schalenfrüchte'],haselnuesse:['Schalenfrüchte'],cashews:['Schalenfrüchte'],pesto:['Milch','Schalenfrüchte'],erdnussmus:['Erdnuss'],tahini:['Sesam'],kerne:['ggf. Sesam'],senf:['Senf'],sellerie:['Sellerie'],bruehe:['oft Sellerie'],feta:['Milch'],mozzarella:['Milch'],parmesan:['Milch'],kaese:['Milch'],joghurt:['Milch'],quark:['Milch'],milch:['Milch'],sahne:['Milch'],butter:['Milch'],halloumi:['Milch'],zartbitter:['ggf. Milchspuren'],spaetzle:['Gluten','Ei'],maultaschen:['Gluten','Ei'],filoteig:['Gluten'],ricotta:['Milch'],sauresahne:['Milch']};
 const AG_V={spaetzle:['Gluten'],maultaschen:['Gluten'],ricotta:['Soja'],joghurt:['Soja'],quark:['Soja'],pesto:['Schalenfrüchte'],milch:['ggf. Gluten (Hafer)'],sahne:['ggf. Gluten (Hafer)'],halloumi:['Soja'],parmesan:[]};
 const has=k=>S.allergies.includes(k);
 const plantSwap=id=>{const x=I[id];if(!x||!x.vg)return false;if(vegan())return true;if(id==='eier')return has('ei');if(id==='spaetzle'||id==='maultaschen')return has('ei');if(x.c==='m')return has('milch');return false;};
